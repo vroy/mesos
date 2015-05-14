@@ -14,9 +14,9 @@
   // Invokes the pailer for the specified host and path using the
   // specified window_title.
   function pailer(host, path, window_title) {
-    var url = '//' + host + '/files/read?path=' + path;
+    var url = host + 'files/read?path=' + path;
     var pailer =
-      window.open('/static/pailer.html', url, 'width=580px, height=700px');
+      window.open('static/pailer.html', url, 'width=580px, height=700px');
 
     // Need to use window.onload instead of document.ready to make
     // sure the title doesn't get overwritten.
@@ -49,30 +49,15 @@
     }
   }
 
-  // Set the task sandbox directory for use by the WebUI.
-  function setTaskSandbox(executor) {
-    _.each(
-        [executor.tasks, executor.queued_tasks, executor.completed_tasks],
-        function(tasks) {
-      _.each(tasks, function(task) {
-        if (executor.type === 'DEFAULT') {
-          task.directory = executor.directory + '/tasks/' + task.id;
-        } else {
-          task.directory = executor.directory;
-        };
-      });
-    });
-  }
-
 
   // Update the outermost scope with the new state.
-  function updateState($scope, $timeout, state) {
-    // Don't do anything if the state hasn't changed.
-    if ($scope.state == state) {
+  function updateState($scope, $timeout, data) {
+    // Don't do anything if the data hasn't changed.
+    if ($scope.data == data) {
       return true; // Continue polling.
     }
 
-    $scope.state = state;
+    $scope.state = JSON.parse(data);
 
     // A cluster is named if the state returns a non-empty string name.
     // Track whether this cluster is named in a Boolean for display purposes.
@@ -88,6 +73,8 @@
     if (hasSelectedText() && $scope.time_since_update < 20000) {
       return true;
     }
+
+    $scope.data = data;
 
     // Pass this pollTime to all relativeDate calls to make them all relative to
     // the same moment in time.
@@ -194,7 +181,7 @@
 
       framework.disk_share = 0;
       if ($scope.total_disk > 0) {
-        framework.disk_share = framework.used_resources.disk / $scope.total_disk;
+        framework.disk_share = framework.resources.disk / $scope.total_disk;
       }
 
       framework.max_share = Math.max(
@@ -240,6 +227,13 @@
     return true; // Continue polling.
   }
 
+  // Add a filter to convert small float number to decimal string
+  mesosApp.filter('decimalFloat', function() {
+    return function(num) {
+      return num ? parseFloat(num.toFixed(4)).toString() : num;
+    }
+  });
+
   // Update the outermost scope with the metrics/snapshot endpoint.
   function updateMetrics($scope, $timeout, data) {
     var metrics = JSON.parse(data);
@@ -265,6 +259,13 @@
   mesosApp.controller('MainCntl', [
       '$scope', '$http', '$location', '$timeout', '$modal',
       function($scope, $http, $location, $timeout, $modal) {
+
+    // Redirect from old mesos ui location to new dcos mesos ui location
+    if ($location.port() === 5050) {
+      var url = $location.protocol() + "://" + $location.host() + "/mesos";
+      window.location = url;
+    }
+
     $scope.doneLoading = true;
 
     // Adding bindings into scope so that they can be used from within
@@ -382,11 +383,8 @@
     var pollState = function() {
       // When the current master is not the leader, the request is redirected to
       // the leading master automatically. This would cause a CORS error if we
-      // use XMLHttpRequest here. To avoid the CORS error, we use JSONP as a
-      // workaround. Please refer to MESOS-5911 for further details.
-      $http.jsonp('master/state?jsonp=JSON_CALLBACK')
-        .success(function(response) {
-          if (updateState($scope, $timeout, response)) {
+        .success(function(data) {
+          if (updateState($scope, $timeout, data)) {
             $scope.delay = updateInterval(_.size($scope.agents));
             $timeout(pollState, $scope.delay);
           }
@@ -409,11 +407,7 @@
         })
         .error(function(message, code) {
           if ($scope.isErrorModalOpen === false) {
-            // If return code is 401 or 403 the user is unauthorized to reach
-            // the endpoint, which is not a connection error.
-            if ([401, 403].indexOf(code) < 0) {
-              popupErrorModal();
-            }
+            popupErrorModal();
           }
         });
     };
@@ -433,7 +427,7 @@
         ).open();
       } else {
         pailer(
-            $scope.$location.host() + ':' + $scope.$location.port(),
+            '/mesos/',
             '/master/log',
             'Mesos Master');
       }
@@ -485,9 +479,8 @@
       }
 
       var pid = $scope.agents[$routeParams.agent_id].pid;
-      var hostname = $scope.agents[$routeParams.agent_id].hostname;
       var id = pid.substring(0, pid.indexOf('@'));
-      var host = hostname + ":" + pid.substring(pid.lastIndexOf(':') + 1);
+      var host = '/agent/' + $routeParams.agent_id + '/';
 
       $scope.log = function($event) {
         if (!$scope.state.external_log_file && !$scope.state.log_dir) {
@@ -506,7 +499,7 @@
         $top.start(host, $scope);
       }
 
-      $http.jsonp('//' + host + '/' + id + '/state?jsonp=JSON_CALLBACK')
+      $http.jsonp('/agent/' + $routeParams.agent_id + '/' + id + '/state?jsonp=JSON_CALLBACK')
         .success(function (response) {
           $scope.state = response;
 
@@ -595,16 +588,15 @@
       }
 
       var pid = $scope.agents[$routeParams.agent_id].pid;
-      var hostname = $scope.agents[$routeParams.agent_id].hostname;
       var id = pid.substring(0, pid.indexOf('@'));
-      var host = hostname + ":" + pid.substring(pid.lastIndexOf(':') + 1);
+      var host = '/agent/' + $routeParams.agent_id + '/';
 
       // Set up polling for the monitor if this is the first update.
       if (!$top.started()) {
         $top.start(host, $scope);
       }
 
-      $http.jsonp('//' + host + '/' + id + '/state?jsonp=JSON_CALLBACK')
+      $http.jsonp(host + id + '/state?jsonp=JSON_CALLBACK')
         .success(function (response) {
           $scope.state = response;
 
@@ -672,16 +664,15 @@
       }
 
       var pid = $scope.agents[$routeParams.agent_id].pid;
-      var hostname = $scope.agents[$routeParams.agent_id].hostname;
       var id = pid.substring(0, pid.indexOf('@'));
-      var host = hostname + ":" + pid.substring(pid.lastIndexOf(':') + 1);
+      var host = '/agent/' + $routeParams.agent_id + '/';
 
       // Set up polling for the monitor if this is the first update.
       if (!$top.started()) {
         $top.start(host, $scope);
       }
 
-      $http.jsonp('//' + host + '/' + id + '/state?jsonp=JSON_CALLBACK')
+      $http.jsonp(host + id + '/state?jsonp=JSON_CALLBACK')
         .success(function (response) {
           $scope.state = response;
 
@@ -717,8 +708,6 @@
             return;
           }
 
-          setTaskSandbox($scope.executor);
-
           $('#agent').show();
         })
         .error(function (reason) {
@@ -736,13 +725,11 @@
   }]);
 
 
-  // Reroutes requests like:
-  //   * '/agents/:agent_id/frameworks/:framework_id/executors/:executor_id/browse'
-  //   * '/agents/:agent_id/frameworks/:framework_id/executors/:executor_id/tasks/:task_id/browse'
-  // to the sandbox directory of the executor or the task respectively. This
-  // requires a second request because the directory to browse is known by the
-  // agent but not by the master. Request the directory from the agent, and then
-  // redirect to it.
+  // Reroutes a request like
+  // '//agents/:agent_id/frameworks/:framework_id/executors/:executor_id/browse'
+  // to the executor's sandbox. This requires a second request because the
+  // directory to browse is known by the agent but not by the master. Request
+  // the directory from the agent, and then redirect to it.
   //
   // TODO(ssorallen): Add `executor.directory` to the master's state endpoint
   // output so this controller of rerouting is no longer necessary.
@@ -783,14 +770,12 @@
     }
 
     var pid = agent.pid;
-    var hostname = $scope.agents[$routeParams.agent_id].hostname;
     var id = pid.substring(0, pid.indexOf('@'));
-    var port = pid.substring(pid.lastIndexOf(':') + 1);
-    var host = hostname + ":" + port;
+    var host = '/agent/' + $routeParams.agent_id + '/';
 
     // Request agent details to get access to the route executor's "directory"
     // to navigate directly to the executor's sandbox.
-    $http.jsonp('//' + host + '/' + id + '/state?jsonp=JSON_CALLBACK')
+    $http.jsonp(host + id + '/state?jsonp=JSON_CALLBACK')
       .success(function(response) {
 
         function matchFramework(framework) {
@@ -825,44 +810,16 @@
           );
         }
 
-        var sandboxDirectory = executor.directory;
-
-        function matchTask(task) {
-          return $routeParams.task_id === task.id;
-        }
-
-        // Continue to navigate to the task's sandbox if the task id is
-        // specified in route parameters.
-        if ($routeParams.task_id) {
-          setTaskSandbox(executor);
-
-          var task =
-            _.find(executor.tasks, matchTask) ||
-            _.find(executor.queued_tasks, matchTask) ||
-            _.find(executor.completed_tasks, matchTask);
-
-          if (!task) {
-            return goBack(
-              "Task with ID '" + $routeParams.task_id +
-                "' does not exist on agent with ID '" + $routeParams.agent_id +
-                "'."
-            );
-          }
-
-          sandboxDirectory = task.directory;
-        }
-
         // Navigate to a path like '/agents/:id/browse?path=%2Ftmp%2F', the
         // recognized "browse" endpoint for an agent.
         $location.path('/agents/' + $routeParams.agent_id + '/browse')
-          .search({path: sandboxDirectory})
+          .search({path: executor.directory})
           .replace();
       })
       .error(function(response) {
         $alert.danger({
           bullets: [
-            "The agent's hostname, '" + hostname + "', is not accessible from your network",
-            "The agent's port, '" + port + "', is not accessible from your network",
+            "The agent is not accessible",
             "The agent timed out or went offline"
           ],
           message: "Potential reasons:",
@@ -883,18 +840,13 @@
         $scope.agent_id = $routeParams.agent_id;
         $scope.path = $routeParams.path;
 
-        var pid = $scope.agents[$routeParams.agent_id].pid;
-        var hostname = $scope.agents[$routeParams.agent_id].hostname;
-        var id = pid.substring(0, pid.indexOf('@'));
-        var host = hostname + ":" + pid.substring(pid.lastIndexOf(':') + 1);
-        var url = '//' + host + '/files/browse?jsonp=JSON_CALLBACK';
-
-        $scope.agent_host = host;
+        var url = '/agent/' + $scope.agent_id + '/files/browse?jsonp=JSON_CALLBACK';
 
         $scope.pail = function($event, path) {
-          pailer(host, path, decodeURIComponent(path));
+          pailer('/agent/' + $scope.agent_id + '/', path, decodeURIComponent(path));
         };
 
+        $scope.agent_host = '/agent/' + $scope.agent_id + '/';
         // TODO(bmahler): Try to get the error code / body in the error callback.
         // This wasn't working with the current version of angular.
         $http.jsonp(url, {params: {path: $routeParams.path}})
