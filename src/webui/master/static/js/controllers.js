@@ -14,9 +14,9 @@
   // Invokes the pailer for the specified host and path using the
   // specified window_title.
   function pailer(host, path, window_title) {
-    var url = '//' + host + '/files/read?path=' + path;
+    var url = host + 'files/read?path=' + path;
     var pailer =
-      window.open('/static/pailer.html', url, 'width=580px, height=700px');
+      window.open('static/pailer.html', url, 'width=580px, height=700px');
 
     // Need to use window.onload instead of document.ready to make
     // sure the title doesn't get overwritten.
@@ -257,6 +257,13 @@
   mesosApp.controller('MainCntl', [
       '$scope', '$http', '$location', '$timeout', '$modal',
       function($scope, $http, $location, $timeout, $modal) {
+
+    // Redirect from old mesos ui location to new dcos mesos ui location
+    if ($location.port() === 5050) {
+      var url = $location.protocol() + "://" + $location.host() + "/mesos";
+      window.location = url;
+    }
+
     $scope.doneLoading = true;
 
     // Adding bindings into scope so that they can be used from within
@@ -421,7 +428,7 @@
         ).open();
       } else {
         pailer(
-            $scope.$location.host() + ':' + $scope.$location.port(),
+            '/mesos/',
             '/master/log',
             'Mesos Master');
       }
@@ -473,9 +480,8 @@
       }
 
       var pid = $scope.agents[$routeParams.agent_id].pid;
-      var hostname = $scope.agents[$routeParams.agent_id].hostname;
       var id = pid.substring(0, pid.indexOf('@'));
-      var host = hostname + ":" + pid.substring(pid.lastIndexOf(':') + 1);
+      var host = '/agent/' + $routeParams.agent_id + '/';
 
       $scope.log = function($event) {
         if (!$scope.state.external_log_file && !$scope.state.log_dir) {
@@ -494,7 +500,7 @@
         $top.start(host, $scope);
       }
 
-      $http.jsonp('//' + host + '/' + id + '/state?jsonp=JSON_CALLBACK')
+      $http.jsonp('/agent/' + $routeParams.agent_id + '/' + id + '/state?jsonp=JSON_CALLBACK')
         .success(function (response) {
           $scope.state = response;
 
@@ -583,16 +589,15 @@
       }
 
       var pid = $scope.agents[$routeParams.agent_id].pid;
-      var hostname = $scope.agents[$routeParams.agent_id].hostname;
       var id = pid.substring(0, pid.indexOf('@'));
-      var host = hostname + ":" + pid.substring(pid.lastIndexOf(':') + 1);
+      var host = '/agent/' + $routeParams.agent_id + '/';
 
       // Set up polling for the monitor if this is the first update.
       if (!$top.started()) {
         $top.start(host, $scope);
       }
 
-      $http.jsonp('//' + host + '/' + id + '/state?jsonp=JSON_CALLBACK')
+      $http.jsonp(host + id + '/state?jsonp=JSON_CALLBACK')
         .success(function (response) {
           $scope.state = response;
 
@@ -660,16 +665,15 @@
       }
 
       var pid = $scope.agents[$routeParams.agent_id].pid;
-      var hostname = $scope.agents[$routeParams.agent_id].hostname;
       var id = pid.substring(0, pid.indexOf('@'));
-      var host = hostname + ":" + pid.substring(pid.lastIndexOf(':') + 1);
+      var host = '/agent/' + $routeParams.agent_id + '/';
 
       // Set up polling for the monitor if this is the first update.
       if (!$top.started()) {
         $top.start(host, $scope);
       }
 
-      $http.jsonp('//' + host + '/' + id + '/state?jsonp=JSON_CALLBACK')
+      $http.jsonp(host + id + '/state?jsonp=JSON_CALLBACK')
         .success(function (response) {
           $scope.state = response;
 
@@ -723,7 +727,7 @@
 
 
   // Reroutes a request like
-  // '/agents/:agent_id/frameworks/:framework_id/executors/:executor_id/browse'
+  // '//agents/:agent_id/frameworks/:framework_id/executors/:executor_id/browse'
   // to the executor's sandbox. This requires a second request because the
   // directory to browse is known by the agent but not by the master. Request
   // the directory from the agent, and then redirect to it.
@@ -767,14 +771,12 @@
     }
 
     var pid = agent.pid;
-    var hostname = $scope.agents[$routeParams.agent_id].hostname;
     var id = pid.substring(0, pid.indexOf('@'));
-    var port = pid.substring(pid.lastIndexOf(':') + 1);
-    var host = hostname + ":" + port;
+    var host = '/agent/' + $routeParams.agent_id + '/';
 
     // Request agent details to get access to the route executor's "directory"
     // to navigate directly to the executor's sandbox.
-    $http.jsonp('//' + host + '/' + id + '/state?jsonp=JSON_CALLBACK')
+    $http.jsonp(host + id + '/state?jsonp=JSON_CALLBACK')
       .success(function(response) {
 
         function matchFramework(framework) {
@@ -818,8 +820,7 @@
       .error(function(response) {
         $alert.danger({
           bullets: [
-            "The agent's hostname, '" + hostname + "', is not accessible from your network",
-            "The agent's port, '" + port + "', is not accessible from your network",
+            "The agent is not accessible",
             "The agent timed out or went offline"
           ],
           message: "Potential reasons:",
@@ -840,18 +841,13 @@
         $scope.agent_id = $routeParams.agent_id;
         $scope.path = $routeParams.path;
 
-        var pid = $scope.agents[$routeParams.agent_id].pid;
-        var hostname = $scope.agents[$routeParams.agent_id].hostname;
-        var id = pid.substring(0, pid.indexOf('@'));
-        var host = hostname + ":" + pid.substring(pid.lastIndexOf(':') + 1);
-        var url = '//' + host + '/files/browse?jsonp=JSON_CALLBACK';
-
-        $scope.agent_host = host;
+        var url = '/agent/' + $scope.agent_id + '/files/browse?jsonp=JSON_CALLBACK';
 
         $scope.pail = function($event, path) {
-          pailer(host, path, decodeURIComponent(path));
+          pailer('/agent/' + $scope.agent_id + '/', path, decodeURIComponent(path));
         };
 
+        $scope.agent_host = '/agent/' + $scope.agent_id + '/';
         // TODO(bmahler): Try to get the error code / body in the error callback.
         // This wasn't working with the current version of angular.
         $http.jsonp(url, {params: {path: $routeParams.path}})
