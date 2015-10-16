@@ -550,6 +550,11 @@ Future<Option<int>> Docker::run(
     environmentVariables += variable.name() + "=" + variable.value() + "\n";
   }
 
+  Option<string> libprocessIP = os::getenv("LIBPROCESS_IP");
+  if (libprocessIP.isSome()) {
+    environmentVariables += "LIBPROCESS_IP=" + libprocessIP.get() + "\n";
+  }
+
   environmentVariables += "MESOS_SANDBOX=" + mappedDirectory + "\n";
   environmentVariables += "MESOS_CONTAINER_NAME=" + name + "\n";
 
