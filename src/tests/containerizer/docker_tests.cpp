@@ -67,6 +67,26 @@ class DockerTest : public MesosTest
       AWAIT_READY_FOR(docker.get()->rm(container.id, true), Seconds(30));
     }
   }
+
+protected:
+  Volume createDockerVolume(
+      const string& driver,
+      const string& name,
+      const string& containerPath)
+  {
+    Volume volume;
+    volume.set_mode(Volume::RW);
+    volume.set_container_path(containerPath);
+
+    Volume::Source* source = volume.mutable_source();
+    source->set_type(Volume::Source::DOCKER_VOLUME);
+
+    Volume::Source::DockerVolume* docker = source->mutable_docker_volume();
+    docker->set_driver(driver);
+    docker->set_name(name);
+
+    return volume;
+  }
 };
 
 
