@@ -602,7 +602,7 @@ Future<Nothing> Docker::run(
   }
 
   if (volumeDriver.isSome()) {
-    argv.push_back("--volume-driver=" + dockerInfo.volume_driver());
+    argv.push_back("--volume-driver=" + volumeDriver.get());
   }
 
   const string& image = dockerInfo.image();
