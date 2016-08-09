@@ -402,6 +402,10 @@ int main(int argc, char** argv)
       if (url.isError()) {
         EXIT(EXIT_FAILURE) << "Error parsing ZooKeeper URL: " << url.error();
       }
+      if (url.get().authentication.isSome()) {
+      LOG(INFO) << "DUPA ZK auth scheme: " << url.get().authentication.get().scheme;
+      LOG(INFO) << "DUPA ZK auth creds: " << url.get().authentication.get().credentials;
+      }
 
       log = new Log(
           flags.quorum.get(),

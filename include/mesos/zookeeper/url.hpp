@@ -82,6 +82,7 @@ inline Try<URL> URL::parse(const std::string& url)
   s = s.substr(5);
 
   // Look for the trailing '/' (if any), that's where the path starts.
+  LOG(INFO) << "DUPA PRE parseauthstring: `" << s << "`";
   std::string path;
   do {
     size_t index = s.find_last_of('/');
@@ -93,6 +94,7 @@ inline Try<URL> URL::parse(const std::string& url)
       s = s.substr(0, index);
     }
   } while (true);
+  LOG(INFO) << "DUPA PRE parseauthstring: `" << s << "`, path: `" << path << "`";
 
   if (path == "") {
     path = "/";
@@ -101,9 +103,12 @@ inline Try<URL> URL::parse(const std::string& url)
   // Look for the trailing '@' (if any), that's where servers starts.
   size_t index = s.find_last_of('@');
 
+
   if (index != std::string::npos) {
+  LOG(INFO) << "DUPA parseauthstring OK: " << s.substr(0, index);
     return URL(s.substr(0, index), s.substr(index + 1), path);
   } else {
+  LOG(INFO) << "DUPA parseauthstring NOK: `" << s << "`";
     return URL(s, path);
   }
 }
