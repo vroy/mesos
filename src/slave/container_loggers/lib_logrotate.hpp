@@ -39,16 +39,16 @@ namespace logger {
 class LogrotateContainerLoggerProcess;
 
 
-struct Flags : public virtual flags::FlagsBase
+struct LoggerOptions : public virtual flags::FlagsBase
 {
-  Flags()
+  LoggerOptions()
   {
     add(&max_stdout_size,
         "max_stdout_size",
         "Maximum size, in bytes, of a single stdout log file.\n"
         "Defaults to 10 MB.  Must be at least 1 (memory) page.",
         Megabytes(10),
-        &Flags::validateSize);
+        &LoggerOptions::validateSize);
 
     add(&logrotate_stdout_options,
         "logrotate_stdout_options",
@@ -66,7 +66,7 @@ struct Flags : public virtual flags::FlagsBase
         "Maximum size, in bytes, of a single stderr log file.\n"
         "Defaults to 10 MB.  Must be at least 1 (memory) page.",
         Megabytes(10),
-        &Flags::validateSize);
+        &LoggerOptions::validateSize);
 
     add(&logrotate_stderr_options,
         "logrotate_stderr_options",
@@ -78,6 +78,44 @@ struct Flags : public virtual flags::FlagsBase
         "    size <max_stderr_size>\n"
         "  }\n"
         "NOTE: The 'size' option will be overriden by this module.");
+  }
+
+  static Option<Error> validateSize(const Bytes& value)
+  {
+    if (value.bytes() < static_cast<uint64_t>(os::pagesize())) {
+      return Error(
+          "Expected --max_stdout_size and --max_stderr_size of "
+          "at least " + stringify(os::pagesize()) + " bytes");
+    }
+
+    return None();
+  }
+
+  Bytes max_stdout_size;
+  Option<std::string> logrotate_stdout_options;
+
+  Bytes max_stderr_size;
+  Option<std::string> logrotate_stderr_options;
+};
+
+
+struct Flags : public LoggerOptions
+{
+  Flags()
+  {
+    add(&environment_variable_prefix,
+        "environment_variable_prefix",
+        "Prefix for environment variables meant to modify the behavior of\n"
+        "the logrotate logger for the specific executor being launched.\n"
+        "The logger will look for four prefixed environment variables in the\n"
+        "'ExecutorInfo's 'CommandInfo's 'Environment':\n"
+        "  * MAX_STDOUT_SIZE\n"
+        "  * LOGROTATE_STDOUT_OPTIONS\n"
+        "  * MAX_STDERR_SIZE\n"
+        "  * LOGROTATE_STDERR_OPTIONS\n"
+        "If present, these variables will overwrite the global values set\n"
+        "via module parameters.",
+        "MESOS_LOGROTATE_LOGGER_");
 
     add(&launcher_dir,
         "launcher_dir",
@@ -130,22 +168,7 @@ struct Flags : public virtual flags::FlagsBase
         });
   }
 
-  static Option<Error> validateSize(const Bytes& value)
-  {
-    if (value.bytes() < static_cast<uint64_t>(os::pagesize())) {
-      return Error(
-          "Expected --max_stdout_size and --max_stderr_size of "
-          "at least " + stringify(os::pagesize()) + " bytes");
-    }
-
-    return None();
-  }
-
-  Bytes max_stdout_size;
-  Option<std::string> logrotate_stdout_options;
-
-  Bytes max_stderr_size;
-  Option<std::string> logrotate_stderr_options;
+  std::string environment_variable_prefix;
 
   std::string launcher_dir;
   std::string logrotate_path;
