@@ -14,11 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+
 #ifdef __WINDOWS__
 #include <process/windows/winsock.hpp>
 #endif // __WINDOWS__
 
+#include <process/process.hpp>
+
 #include <stout/none.hpp>
+#include <stout/option.hpp>
+#include <stout/os.hpp>
 #include <stout/subcommand.hpp>
 
 #include "slave/containerizer/mesos/launch.hpp"
@@ -33,6 +39,21 @@ using namespace mesos::internal::slave;
 
 int main(int argc, char** argv)
 {
+  // We need to backup the original value of `LIBPROCESS_SSL_ENABLED`
+  // so we can restore it after initializing libprocess. This makes
+  // sure that the mesos-containerizer does not try to use any SSL
+  // related configuration setup - namely the certificate and key
+  // paths.
+  Option<std::string> enabled = os::getenv("LIBPROCESS_SSL_ENABLED");
+
+  os::unsetenv("LIBPROCESS_SSL_ENABLED");
+
+  process::initialize();
+
+  if (enabled.isSome()) {
+    os::setenv("LIBPROCESS_SSL_ENABLED", enabled.get());
+  }
+
 #ifdef __WINDOWS__
   // Initialize the Windows socket stack.
   process::Winsock winsock;
