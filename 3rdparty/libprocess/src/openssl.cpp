@@ -448,6 +448,9 @@ void reinitialize()
             << "LIBPROCESS_SSL_VERIFY_CERT set to true";
   }
 
+  VLOG(2) << "++++ Current working directory while initializing SSL: "
+          << os::getcwd();
+
   // Initialize OpenSSL if we've been asked to do verification of peer
   // certificates.
   if (ssl_flags->verify_cert) {
