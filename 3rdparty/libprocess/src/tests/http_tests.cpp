@@ -200,14 +200,23 @@ public:
 };
 
 
+// NOTE: `#ifdef`'ing out the argument `string("https")` argument causes a
+// build break on Windows, because the preprocessor is not required to to
+// process the text it expands.
+#ifdef USE_SSL_SOCKET
 INSTANTIATE_TEST_CASE_P(
     Scheme,
     HTTPTest,
     ::testing::Values(
-#ifdef USE_SSL_SOCKET
         string("https"),
-#endif // USE_SSL_SOCKET
         string("http")));
+#else
+INSTANTIATE_TEST_CASE_P(
+    Scheme,
+    HTTPTest,
+    ::testing::Values(
+        string("http")));
+#endif // USE_SSL_SOCKET
 
 
 // TODO(vinod): Use AWAIT_EXPECT_RESPONSE_STATUS_EQ in the tests.
