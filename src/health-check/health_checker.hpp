@@ -55,7 +55,7 @@ public:
    * @param launcherDir A directory where Mesos helper binaries are located.
    * @param callback A callback HealthChecker uses to send health status
    *     updates to its owner (usually an executor).
-   * @param taskID The TaskID of the target task.
+   * @param taskId The TaskID of the target task.
    * @param taskPid The target task's pid used to enter the specified
    *     namespaces.
    * @param namespaces The namespaces to enter prior performing a single health
@@ -69,9 +69,35 @@ public:
       const HealthCheck& check,
       const std::string& launcherDir,
       const lambda::function<void(const TaskHealthStatus&)>& callback,
-      const TaskID& taskID,
-      Option<pid_t> taskPid,
+      const TaskID& taskId,
+      const Option<pid_t> taskPid,
       const std::vector<std::string>& namespaces);
+
+  /**
+   * Attempts to create a `HealthChecker` object. In case of success, health
+   * checking starts immediately after initialization.
+   *
+   * @param check The protobuf message definition of health check.
+   * @param launcherDir A directory where Mesos helper binaries are located.
+   * @param callback A callback HealthChecker uses to send health status
+   *     updates to its owner (usually an executor).
+   * @param taskId The TaskID of the target task.
+   * @param taskContainerId The ContainerID of the target task.
+   * @param agentURL The URL of the agent.
+   * @return A `HealthChecker` object or an error if `create` fails.
+   *
+   * @todo A better approach would be to return a stream of updates, e.g.,
+   * `process::Stream<TaskHealthStatus>` rather than invoking a callback.
+   */
+  static Try<process::Owned<HealthChecker>> create(
+      const HealthCheck& check,
+      const std::string& launcherDir,
+      const lambda::function<void(const TaskHealthStatus&)>& callback,
+      const TaskID& taskId,
+      const ContainerID& taskContainerId,
+      const process::http::URL& agentURL,
+      const Option<Environment>& taskEnv);
+
 
   ~HealthChecker();
 
@@ -94,9 +120,12 @@ public:
       const HealthCheck& _check,
       const std::string& _launcherDir,
       const lambda::function<void(const TaskHealthStatus&)>& _callback,
-      const TaskID& _taskID,
-      Option<pid_t> _taskPid,
-      const std::vector<std::string>& _namespaces);
+      const TaskID& _taskId,
+      const Option<pid_t> _taskPid,
+      const std::vector<std::string>& _namespaces,
+      const Option<ContainerID>& _taskContainerId,
+      const Option<process::http::URL>& _agentURL,
+      const Option<Environment>& _taskEnv);
 
   virtual ~HealthCheckerProcess() {}
 
@@ -113,6 +142,24 @@ private:
       const process::Future<Nothing>& future);
 
   process::Future<Nothing> commandHealthCheck();
+
+  process::Future<Nothing> nestedCommandHealthCheck();
+
+  process::Future<Nothing> _nestedCommandHealthCheck(
+      process::http::Connection connection);
+
+  process::Future<Nothing> __nestedCommandHealthCheck(
+      const ContainerID checkContainerId,
+      const process::http::Response& launchResponse);
+
+  process::Future<process::http::Response>
+  nestedCommandHealthCheckTimedOut(
+      const ContainerID checkContainerId,
+      process::http::Connection connection,
+      process::Future<process::http::Response> future);
+
+  process::Future<Option<int>> waitForHealthCheckContainer(
+      const ContainerID checkContainerId);
 
   process::Future<Nothing> httpHealthCheck();
 
@@ -142,9 +189,13 @@ private:
   const std::string launcherDir;
 
   const lambda::function<void(const TaskHealthStatus&)> healthUpdateCallback;
-  const TaskID taskID;
+  const TaskID taskId;
   const Option<pid_t> taskPid;
   const std::vector<std::string> namespaces;
+  const Option<ContainerID> taskContainerId;
+  const Option<process::http::URL> agentURL;
+  const Option<Environment> taskEnv;
+
   Option<lambda::function<pid_t(const lambda::function<int()>&)>> clone;
 
   uint32_t consecutiveFailures;

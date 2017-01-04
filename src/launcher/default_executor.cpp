@@ -394,9 +394,11 @@ protected:
       pending.pop_front();
 
       if (task.has_health_check()) {
-        // TODO(anand): Add support for command health checks.
-        CHECK_NE(HealthCheck::COMMAND, task.health_check().type())
-          << "Command health checks are not supported yet";
+        Option<Environment> env;
+
+        if (task.has_command() && task.command().has_environment()) {
+          env = task.command().environment();
+        }
 
         Try<Owned<health::HealthChecker>> _checker =
           health::HealthChecker::create(
@@ -404,8 +406,9 @@ protected:
               launcherDirectory,
               defer(self(), &Self::taskHealthUpdated, lambda::_1),
               taskId,
-              None(),
-              vector<string>());
+              containerId,
+              agent,
+              env);
 
         if (_checker.isError()) {
           // TODO(anand): Should we send a TASK_FAILED instead?
