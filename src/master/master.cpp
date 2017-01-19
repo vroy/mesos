@@ -6177,6 +6177,7 @@ void Master::_markUnreachable(
           None(),
           None(),
           None(),
+          None(),
           unreachableTime);
 
       updateTask(task, update);
@@ -6347,6 +6348,7 @@ void Master::_reconcileTasks(
           TaskStatus::REASON_RECONCILIATION,
           executorId,
           protobuf::getTaskHealth(*task),
+          protobuf::getTaskCheckStatus(*task),
           None(),
           protobuf::getTaskContainerStatus(*task));
 
@@ -6421,6 +6423,7 @@ void Master::_reconcileTasks(
           TaskStatus::REASON_RECONCILIATION,
           executorId,
           protobuf::getTaskHealth(*task),
+          protobuf::getTaskCheckStatus(*task),
           None(),
           protobuf::getTaskContainerStatus(*task));
     } else if (slaveId.isSome() && slaves.registered.contains(slaveId.get())) {
@@ -6469,6 +6472,7 @@ void Master::_reconcileTasks(
           None(),
           "Reconciliation: Task is unreachable",
           TaskStatus::REASON_RECONCILIATION,
+          None(),
           None(),
           None(),
           None(),
