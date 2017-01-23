@@ -260,6 +260,7 @@ protected:
         update(
             task.task_id(),
             TASK_FAILED,
+            None(),
             "Attempted to run multiple task groups using a "
             "\"default\" executor");
       }
@@ -615,11 +616,8 @@ protected:
       deserialize<agent::Response>(contentType, response->body);
     CHECK_SOME(waitResponse);
 
-    // If the task has been health checked, stop the associated checker.
-    //
-    // TODO(alexr): Once we support `TASK_KILLING` in this executor, health
-    // checking should be stopped right before sending the `TASK_KILLING`
-    // update to avoid subsequent `TASK_RUNNING` updates.
+    // If the task is health checked, stop the associated health checker
+    // to avoid sending health updates after a terminal status update.
     if (checkers.contains(taskId)) {
       CHECK_NOTNULL(checkers.at(taskId).get());
       checkers.at(taskId)->stop();
@@ -651,9 +649,9 @@ protected:
     }
 
     if (unhealthy) {
-      update(taskId, taskState, message, false);
+      update(taskId, taskState, None(), message, false);
     } else {
-      update(taskId, taskState, message, None());
+      update(taskId, taskState, None(), message);
     }
 
     CHECK(containers.contains(containerId));
@@ -836,9 +834,12 @@ protected:
 
   void taskHealthUpdated(const TaskHealthStatus& healthStatus)
   {
-    // This prevents us from sending `TASK_RUNNING` after a terminal status
-    // update, because we may receive an update from a health check scheduled
-    // before the task has been waited on.
+    // This prevents us from sending health updates after a terminal
+    // status update, because we may receive an update from a health
+    // check scheduled before the task has been waited on.
+    //
+    // TODO(alexr): Once we support `TASK_KILLING` in this executor,
+    // consider sending health updates after `TASK_KILLING`.
     if (!checkers.contains(healthStatus.task_id())) {
       return;
     }
@@ -847,8 +848,8 @@ protected:
               << " '" << healthStatus.task_id() << "', task is "
               << (healthStatus.healthy() ? "healthy" : "not healthy");
 
-    update(
-        healthStatus.task_id(), TASK_RUNNING, None(), healthStatus.healthy());
+    updateParts(
+        healthStatus.task_id(), None(), healthStatus.healthy(), None());
 
     if (healthStatus.kill_task()) {
       unhealthy = true;
@@ -857,9 +858,14 @@ protected:
   }
 
 private:
+  // NOTE: Health updates should in general reuse the previously sent
+  // message. However, if the task is terminated due to a health check,
+  // we send a terminal status update with `TaskStatus.healthy` set to
+  // false.
   void update(
       const TaskID& taskId,
       const TaskState& state,
+      const Option<TaskStatus::Reason>& reason = None(),
       const Option<string>& message = None(),
       const Option<bool>& healthy = None())
   {
@@ -873,6 +879,10 @@ private:
     status.set_source(TaskStatus::SOURCE_EXECUTOR);
     status.set_uuid(uuid.toBytes());
     status.set_timestamp(Clock::now().secs());
+
+    if (reason.isSome()) {
+      status.set_reason(reason.get());
+    }
 
     if (message.isSome()) {
       status.set_message(message.get());
@@ -895,6 +905,38 @@ private:
       }
     }
 
+    sendTaskStatusUpdate(status);
+  }
+
+  // This function creates a task status update from the previous update.
+  void updateParts(
+      const TaskID& taskId,
+      const Option<TaskStatus::Reason>& reason = None(),
+      const Option<bool>& healthy = None())
+  {
+    CHECK(lastTaskStatuses.contains(taskId));
+    TaskStatus lastTaskStatus = lastTaskStatuses[taskId];
+
+    TaskStatus status;
+    status.CopyFrom(lastTaskStatus);
+
+    UUID uuid = UUID::random();
+    status.set_uuid(uuid.toBytes());
+    status.set_timestamp(Clock::now().secs());
+
+    if (reason.isSome()) {
+      status.set_reason(reason.get());
+    }
+
+    if (healthy.isSome()) {
+      status.set_healthy(healthy.get());
+    }
+
+    sendTaskStatusUpdate(status);
+  }
+
+  void sendTaskStatusUpdate(const TaskStatus& status)
+  {
     Call call;
     call.set_type(Call::UPDATE);
 
@@ -905,6 +947,9 @@ private:
 
     // Capture the status update.
     updates[status.uuid()] = call.update();
+
+    // Rewrite the last status update.
+    lastTaskStatuses[status.task_id()] = status;
 
     mesos->send(evolve(call));
   }
@@ -1018,6 +1063,7 @@ private:
   const string launcherDirectory;
   LinkedHashMap<string, Call::Update> updates; // Unacknowledged updates.
   LinkedHashMap<TaskID, TaskInfo> tasks; // Unacknowledged tasks.
+  LinkedHashMap<TaskID, TaskStatus> lastTaskStatuses;
 
   // TODO(anand): Consider creating a `Container` struct to manage
   // information about an active container and its waiting connection.
