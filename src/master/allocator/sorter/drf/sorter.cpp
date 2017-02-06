@@ -151,24 +151,6 @@ void DRFSorter::allocated(
 {
   CHECK(contains(name));
 
-  set<Client, DRFComparator>::iterator it = find(name);
-
-  // The allocator might notify us about an allocation that has been
-  // made to an inactive sorter client. For example, this happens when
-  // an agent re-registers that is running tasks for a framework that
-  // has not yet re-registered.
-  if (it != clients.end()) {
-    // TODO(benh): Refactor 'updateShare' to be able to reuse it here.
-    Client client(*it);
-
-    // Update the 'allocations' to reflect the allocator decision.
-    client.allocations++;
-
-    // Remove and reinsert it to update the ordering appropriately.
-    clients.erase(it);
-    clients.insert(client);
-  }
-
   // Add shared resources to the allocated quantities when the same
   // resources don't already exist in the allocation.
   const Resources newShared = resources.shared()
@@ -186,11 +168,13 @@ void DRFSorter::allocated(
     allocations[name].totals[resource.name()] += resource.scalar();
   }
 
-  // If the total resources have changed, we're going to recalculate
-  // all the shares, so don't bother just updating this client.
-  if (!dirty) {
-    updateShare(name);
-  }
+  // Update the client's share to reflect the new allocation. We do
+  // this even if the sorter is dirty, because we want to increment
+  // the count of allocations made to this client. Note that we might
+  // be called for an allocation that was made to an inactive client
+  // (e.g., when an agent re-registers that is running tasks for a
+  // disconnected framework), in which case this is a no-op.
+  updateShare(name, true);
 }
 
 
@@ -437,7 +421,7 @@ int DRFSorter::count() const
 }
 
 
-void DRFSorter::updateShare(const string& name)
+void DRFSorter::updateShare(const string& name, bool madeAllocation)
 {
   set<Client, DRFComparator>::iterator it = find(name);
 
@@ -446,6 +430,10 @@ void DRFSorter::updateShare(const string& name)
 
     // Update the 'share' to get proper sorting.
     client.share = calculateShare(client.name);
+
+    if (madeAllocation) {
+      client.allocations++;
+    }
 
     // Remove and reinsert it to update the ordering appropriately.
     clients.erase(it);
