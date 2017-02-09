@@ -53,6 +53,8 @@ TEST(SorterTest, DRFSorter)
   Resources totalResources = Resources::parse("cpus:100;mem:100").get();
   sorter.add(slaveId, totalResources);
 
+  EXPECT_EQ(vector<string>({}), sorter.sort());
+
   sorter.add("a");
   Resources aResources = Resources::parse("cpus:5;mem:5").get();
   sorter.allocated("a", slaveId, aResources);
@@ -76,6 +78,7 @@ TEST(SorterTest, DRFSorter)
   EXPECT_EQ(vector<string>({"c", "d", "a", "b"}), sorter.sort());
 
   sorter.remove("a");
+
   Resources bUnallocated = Resources::parse("cpus:4;mem:4").get();
   sorter.unallocated("b", slaveId, bUnallocated);
 
@@ -140,7 +143,8 @@ TEST(SorterTest, WDRFSorter)
 
   sorter.allocated("a", slaveId, Resources::parse("cpus:5;mem:5").get());
 
-  sorter.add("b", 2);
+  sorter.add("b");
+  sorter.updateWeight("b", 2);
   sorter.allocated("b", slaveId, Resources::parse("cpus:6;mem:6").get());
 
   // shares: a = .05, b = .03
@@ -152,7 +156,8 @@ TEST(SorterTest, WDRFSorter)
   // shares: a = .05, b = .03, c = .04
   EXPECT_EQ(vector<string>({"b", "c", "a"}), sorter.sort());
 
-  sorter.add("d", 10);
+  sorter.add("d");
+  sorter.updateWeight("d", 10);
   sorter.allocated("d", slaveId, Resources::parse("cpus:10;mem:20").get());
 
   // shares: a = .05, b = .03, c = .04, d = .02
@@ -167,7 +172,8 @@ TEST(SorterTest, WDRFSorter)
   // shares: a = .05, c = .04, d = .045
   EXPECT_EQ(vector<string>({"c", "d", "a"}), sorter.sort());
 
-  sorter.add("e", .1);
+  sorter.add("e");
+  sorter.updateWeight("e", 0.1);
   sorter.allocated("e", slaveId, Resources::parse("cpus:1;mem:1").get());
 
   // shares: a = .05, c = .04, d = .045, e = .1
@@ -199,8 +205,8 @@ TEST(SorterTest, WDRFSorterUpdateWeight)
   // shares: a = .05, b = .06
   EXPECT_EQ(vector<string>({"a", "b"}), sorter.sort());
 
-  // Increase b's  weight to flip the sort order.
-  sorter.update("b", 2);
+  // Increase b's weight to flip the sort order.
+  sorter.updateWeight("b", 2);
 
   // shares: a = .05, b = .03
   EXPECT_EQ(vector<string>({"b", "a"}), sorter.sort());
@@ -237,6 +243,7 @@ TEST(SorterTest, CountAllocations)
   sorter.allocated("d", slaveId, Resources::parse("cpus:1;mem:1").get());
   sorter.allocated("e", slaveId, Resources::parse("cpus:3;mem:3").get());
 
+  // Allocation count: {a,b,e} = 1, {d} = 2, {c} = 3.
   EXPECT_EQ(vector<string>({"a", "b", "e", "d", "c"}), sorter.sort());
 
   // Check that unallocating and re-allocating to a client does not
@@ -247,21 +254,569 @@ TEST(SorterTest, CountAllocations)
 
   sorter.allocated("c", slaveId, Resources::parse("cpus:3;mem:3").get());
 
+  // Allocation count: {a,b,e} = 1, {d} = 2, {c} = 4.
   EXPECT_EQ(vector<string>({"a", "b", "e", "d", "c"}), sorter.sort());
 
-  // Deactivating and then re-activating a client currently resets the
-  // allocation count to zero.
-  //
-  // TODO(neilc): Consider changing this behavior.
+  // Check that deactivating and then re-activating a client does not
+  // reset the allocation count.
   sorter.deactivate("c");
   sorter.activate("c");
 
-  EXPECT_EQ(vector<string>({"c", "a", "b", "e", "d"}), sorter.sort());
+  // Allocation count: {a,b,e} = 1, {d} = 2, {c} = 4.
+  EXPECT_EQ(vector<string>({"a", "b", "e", "d", "c"}), sorter.sort());
 
   sorter.unallocated("c", slaveId, Resources::parse("cpus:3;mem:3").get());
   sorter.allocated("c", slaveId, Resources::parse("cpus:3;mem:3").get());
 
-  EXPECT_EQ(vector<string>({"a", "b", "c", "e", "d"}), sorter.sort());
+  // Allocation count: {a,b,e} = 1, {d} = 2, {c} = 4.
+  EXPECT_EQ(vector<string>({"a", "b", "e", "d", "c"}), sorter.sort());
+
+  // Check that allocations to an inactive client increase the
+  // allocation count.
+  sorter.deactivate("a");
+
+  sorter.unallocated("a", slaveId, Resources::parse("cpus:1;mem:3").get());
+  sorter.allocated("a", slaveId, Resources::parse("cpus:1;mem:3").get());
+
+  EXPECT_EQ(vector<string>({"b", "e", "d", "c"}), sorter.sort());
+
+  sorter.activate("a");
+
+  // Allocation count: {b,e} = 1, {a,d} = 2, {c} = 4.
+  EXPECT_EQ(vector<string>({"b", "e", "a", "d", "c"}), sorter.sort());
+}
+
+
+// This test checks a simple case of hierarchical allocation: the same
+// sequence of operations happens as in the `DRFSorter` test, but all
+// client names are nested into disjoint branches of the tree. In this
+// case, the hierarchy should not change allocation behavior.
+TEST(SorterTest, ShallowHierarchy)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  Resources totalResources = Resources::parse("cpus:100;mem:100").get();
+  sorter.add(slaveId, totalResources);
+
+  sorter.add("a/a");
+
+  Resources aResources = Resources::parse("cpus:5;mem:5").get();
+  sorter.allocated("a/a", slaveId, aResources);
+
+  Resources bResources = Resources::parse("cpus:6;mem:6").get();
+  sorter.add("b/b");
+  sorter.allocated("b/b", slaveId, bResources);
+
+  // shares: a/a = .05, b/b = .06
+  EXPECT_EQ(vector<string>({"a/a", "b/b"}), sorter.sort());
+
+  Resources cResources = Resources::parse("cpus:1;mem:1").get();
+  sorter.add("c/c");
+  sorter.allocated("c/c", slaveId, cResources);
+
+  Resources dResources = Resources::parse("cpus:3;mem:1").get();
+  sorter.add("d/d");
+  sorter.allocated("d/d", slaveId, dResources);
+
+  // shares: a/a = .05, b/b = .06, c/c = .01, d/d = .03
+  EXPECT_EQ(vector<string>({"c/c", "d/d", "a/a", "b/b"}), sorter.sort());
+
+  sorter.remove("a/a");
+
+  Resources bUnallocated = Resources::parse("cpus:4;mem:4").get();
+  sorter.unallocated("b/b", slaveId, bUnallocated);
+
+  // shares: b/b = .02, c/c = .01, d/d = .03
+  EXPECT_EQ(vector<string>({"c/c", "b/b", "d/d"}), sorter.sort());
+
+  Resources eResources = Resources::parse("cpus:1;mem:5").get();
+  sorter.add("e/e");
+  sorter.allocated("e/e", slaveId, eResources);
+
+  Resources removedResources = Resources::parse("cpus:50;mem:0").get();
+  sorter.remove(slaveId, removedResources);
+  // total resources is now cpus = 50, mem = 100
+
+  // shares: b/b = .04, c/c = .02, d/d = .06, e/e = .05
+  EXPECT_EQ(vector<string>({"c/c", "b/b", "e/e", "d/d"}), sorter.sort());
+
+  Resources addedResources = Resources::parse("cpus:0;mem:100").get();
+  sorter.add(slaveId, addedResources);
+  // total resources is now cpus = 50, mem = 200
+
+  Resources fResources = Resources::parse("cpus:5;mem:1").get();
+  sorter.add("f/f");
+  sorter.allocated("f/f", slaveId, fResources);
+
+  Resources cResources2 = Resources::parse("cpus:0;mem:15").get();
+  sorter.allocated("c/c", slaveId, cResources2);
+
+  // shares: b = .04, c = .08, d = .06, e = .025, f = .1
+  EXPECT_EQ(vector<string>({"e/e", "b/b", "d/d", "c/c", "f/f"}), sorter.sort());
+
+  EXPECT_TRUE(sorter.contains("b/b"));
+
+  EXPECT_FALSE(sorter.contains("a/a"));
+
+  EXPECT_EQ(5, sorter.count());
+
+  sorter.deactivate("d/d");
+
+  EXPECT_TRUE(sorter.contains("d/d"));
+
+  EXPECT_EQ(vector<string>({"e/e", "b/b", "c/c", "f/f"}), sorter.sort());
+
+  EXPECT_EQ(5, sorter.count());
+
+  sorter.activate("d/d");
+
+  EXPECT_EQ(vector<string>({"e/e", "b/b", "d/d", "c/c", "f/f"}), sorter.sort());
+}
+
+
+// Analogous to `ShallowHierarchy` except the client names are nested
+// more deeply and different client names are at different depths in
+// the tree.
+TEST(SorterTest, DeepHierarchy)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  Resources totalResources = Resources::parse("cpus:100;mem:100").get();
+  sorter.add(slaveId, totalResources);
+
+  sorter.add("a/a/a/a/a");
+  Resources aResources = Resources::parse("cpus:5;mem:5").get();
+  sorter.allocated("a/a/a/a/a", slaveId, aResources);
+
+  Resources bResources = Resources::parse("cpus:6;mem:6").get();
+  sorter.add("b/b/b/b");
+  sorter.allocated("b/b/b/b", slaveId, bResources);
+
+  // shares: a/a/a/a/a = .05, b/b/b/b = .06
+  EXPECT_EQ(vector<string>({"a/a/a/a/a", "b/b/b/b"}), sorter.sort());
+
+  Resources cResources = Resources::parse("cpus:1;mem:1").get();
+  sorter.add("c/c/c");
+  sorter.allocated("c/c/c", slaveId, cResources);
+
+  Resources dResources = Resources::parse("cpus:3;mem:1").get();
+  sorter.add("d/d");
+  sorter.allocated("d/d", slaveId, dResources);
+
+  // shares: a/a/a/a/a = .05, b/b/b/b = .06, c/c/c = .01, d/d = .03
+  EXPECT_EQ(vector<string>({"c/c/c", "d/d", "a/a/a/a/a", "b/b/b/b"}),
+            sorter.sort());
+
+  sorter.remove("a/a/a/a/a");
+
+  Resources bUnallocated = Resources::parse("cpus:4;mem:4").get();
+  sorter.unallocated("b/b/b/b", slaveId, bUnallocated);
+
+  // shares: b/b/b/b = .02, c/c/c = .01, d/d = .03
+  EXPECT_EQ(vector<string>({"c/c/c", "b/b/b/b", "d/d"}), sorter.sort());
+
+  Resources eResources = Resources::parse("cpus:1;mem:5").get();
+  sorter.add("e/e/e/e/e/e");
+  sorter.allocated("e/e/e/e/e/e", slaveId, eResources);
+
+  Resources removedResources = Resources::parse("cpus:50;mem:0").get();
+  sorter.remove(slaveId, removedResources);
+  // total resources is now cpus = 50, mem = 100
+
+  // shares: b/b/b/b = .04, c/c/c = .02, d/d = .06, e/e/e/e/e/e = .05
+  EXPECT_EQ(vector<string>({"c/c/c", "b/b/b/b", "e/e/e/e/e/e", "d/d"}),
+            sorter.sort());
+
+  Resources addedResources = Resources::parse("cpus:0;mem:100").get();
+  sorter.add(slaveId, addedResources);
+  // total resources is now cpus = 50, mem = 200
+
+  Resources fResources = Resources::parse("cpus:5;mem:1").get();
+  sorter.add("f/f");
+  sorter.allocated("f/f", slaveId, fResources);
+
+  Resources cResources2 = Resources::parse("cpus:0;mem:15").get();
+  sorter.allocated("c/c/c", slaveId, cResources2);
+
+  // shares: b = .04, c = .08, d = .06, e = .025, f = .1
+  EXPECT_EQ(vector<string>({"e/e/e/e/e/e", "b/b/b/b", "d/d", "c/c/c", "f/f"}),
+            sorter.sort());
+
+  EXPECT_TRUE(sorter.contains("b/b/b/b"));
+
+  EXPECT_FALSE(sorter.contains("a/a/a/a/a"));
+
+  EXPECT_EQ(5, sorter.count());
+
+  sorter.deactivate("d/d");
+
+  EXPECT_TRUE(sorter.contains("d/d"));
+
+  EXPECT_EQ(vector<string>({"e/e/e/e/e/e", "b/b/b/b", "c/c/c", "f/f"}),
+            sorter.sort());
+
+  EXPECT_EQ(5, sorter.count());
+
+  sorter.activate("d/d");
+
+  EXPECT_EQ(vector<string>({"e/e/e/e/e/e", "b/b/b/b", "d/d", "c/c/c", "f/f"}),
+            sorter.sort());
+}
+
+
+TEST(SorterTest, HierarchicalAllocation)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  Resources totalResources = Resources::parse("cpus:100;mem:100").get();
+  sorter.add(slaveId, totalResources);
+
+  sorter.add("a");
+  sorter.add("b/c");
+  sorter.add("b/d");
+
+  EXPECT_EQ(3, sorter.count());
+  EXPECT_TRUE(sorter.contains("a"));
+  EXPECT_FALSE(sorter.contains("b"));
+  EXPECT_TRUE(sorter.contains("b/c"));
+  EXPECT_TRUE(sorter.contains("b/d"));
+
+  // Shares: a = 0, b/c = 0, b/d = 0.
+  EXPECT_EQ(vector<string>({"a", "b/c", "b/d"}), sorter.sort());
+
+  Resources aResources = Resources::parse("cpus:6;mem:6").get();
+  sorter.allocated("a", slaveId, aResources);
+
+  // Shares: a = 0.06, b/c = 0, b/d = 0.
+  EXPECT_EQ(vector<string>({"b/c", "b/d", "a"}), sorter.sort());
+
+  Resources cResources = Resources::parse("cpus:4;mem:4").get();
+  sorter.allocated("b/c", slaveId, cResources);
+
+  Resources dResources = Resources::parse("cpus:3;mem:3").get();
+  sorter.allocated("b/d", slaveId, dResources);
+
+  // Shares: a = 0.06, b/d = 0.03, d = 0.04.
+  EXPECT_EQ(vector<string>({"a", "b/d", "b/c"}), sorter.sort());
+
+  {
+    hashmap<string, Resources> agentAllocation =
+      sorter.allocation(slaveId);
+
+    EXPECT_EQ(3, agentAllocation.size());
+    EXPECT_EQ(aResources, agentAllocation.at("a"));
+    EXPECT_EQ(cResources, agentAllocation.at("b/c"));
+    EXPECT_EQ(dResources, agentAllocation.at("b/d"));
+
+    EXPECT_EQ(aResources, sorter.allocation("a", slaveId));
+    EXPECT_EQ(cResources, sorter.allocation("b/c", slaveId));
+    EXPECT_EQ(dResources, sorter.allocation("b/d", slaveId));
+  }
+
+  Resources aExtraResources = Resources::parse("cpus:2;mem:2").get();
+  sorter.allocated("a", slaveId, aExtraResources);
+
+  // Shares: b/d = 0.03, b/c = 0.04, a = 0.08.
+  EXPECT_EQ(vector<string>({"b/d", "b/c", "a"}), sorter.sort());
+
+  sorter.add("b/e/f");
+
+  EXPECT_FALSE(sorter.contains("b/e"));
+  EXPECT_TRUE(sorter.contains("b/e/f"));
+
+  // Shares: b/e/f = 0, b/d = 0.03, b/c = 0.04, a = 0.08.
+  EXPECT_EQ(vector<string>({"b/e/f", "b/d", "b/c", "a"}), sorter.sort());
+
+  Resources fResources = Resources::parse("cpus:3.5;mem:3.5").get();
+  sorter.allocated("b/e/f", slaveId, fResources);
+
+  // Shares: a = 0.08, b/d = 0.03, b/e/f = 0.035, b/c = 0.04.
+  EXPECT_EQ(vector<string>({"a", "b/d", "b/e/f", "b/c"}), sorter.sort());
+
+  // Removing a client should result in updating the fair-share for
+  // the subtree that contains the removed client.
+  sorter.remove("b/e/f");
+
+  EXPECT_FALSE(sorter.contains("b/e/f"));
+  EXPECT_EQ(3, sorter.count());
+
+  // Shares: b/d = 0.03, b/c = 0.04, a = 0.08.
+  EXPECT_EQ(vector<string>({"b/d", "b/c", "a"}), sorter.sort());
+
+  // Updating a client should result in updating the fair-share for
+  // the subtree that contains the updated client.
+  Resources cNewResources = Resources::parse("cpus:1;mem:1").get();
+  sorter.update("b/c", slaveId, cResources, cNewResources);
+
+  // Shares: b/c = 0.01, b/d = 0.03, a = 0.08.
+  EXPECT_EQ(vector<string>({"b/c", "b/d", "a"}), sorter.sort());
+
+  sorter.add("b/e/f");
+  sorter.allocated("b/e/f", slaveId, fResources);
+
+  // Shares: b/c = 0.01, b/d = 0.03, b/e/f = 0.035, a = 0.08.
+  EXPECT_EQ(vector<string>({"b/c", "b/d", "b/e/f", "a"}), sorter.sort());
+
+  EXPECT_EQ(4, sorter.count());
+}
+
+
+// This test checks what happens when a new sorter client is added as
+// a child of what was previously a leaf node.
+TEST(SorterTest, AddChildToLeaf)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  sorter.add(slaveId, Resources::parse("cpus:100;mem:100").get());
+
+  sorter.add("a");
+  sorter.allocated(
+      "a", slaveId, Resources::parse("cpus:10;mem:10").get());
+
+  sorter.add("b");
+  sorter.allocated(
+      "b", slaveId, Resources::parse("cpus:6;mem:6").get());
+
+  EXPECT_EQ(vector<string>({"b", "a"}), sorter.sort());
+
+  // Add a new client "a/c". The "a" subtree should now compete against
+  // the "b" subtree; within the "a" subtree, "a" should compete (as a
+  // sibling) against "a/c".
+
+  sorter.add("a/c");
+  sorter.allocated(
+      "a/c", slaveId, Resources::parse("cpus:5;mem:5").get());
+
+  EXPECT_EQ(vector<string>({"b", "a/c", "a"}), sorter.sort());
+
+  // Remove the "a" client; the "a/c" client should remain. Note that
+  // "a/c" now appears before "b" in the sort order, because the "a"
+  // subtree is now farther below its fair-share than the "b" subtree.
+
+  sorter.remove("a");
+
+  EXPECT_FALSE(sorter.contains("a"));
+  EXPECT_EQ(vector<string>({"a/c", "b"}), sorter.sort());
+
+  // Re-add the "a" client with the same resources. The client order
+  // should revert to its previous value.
+  sorter.add("a");
+  sorter.allocated(
+      "a", slaveId, Resources::parse("cpus:10;mem:10").get());
+
+  EXPECT_TRUE(sorter.contains("a"));
+  EXPECT_EQ(vector<string>({"b", "a/c", "a"}), sorter.sort());
+
+  // Check that "a" is considered to have a weight of 1 when it
+  // competes against "a/c".
+  sorter.updateWeight("a/c", 0.2);
+
+  EXPECT_EQ(vector<string>({"b", "a", "a/c"}), sorter.sort());
+
+  // Changing the weight "a" should change how it competes against its
+  // siblings (e.g., "b"), not its children (e.g., "a/c").
+  sorter.updateWeight("a", 3);
+
+  EXPECT_EQ(vector<string>({"a", "a/c", "b"}), sorter.sort());
+
+  sorter.updateWeight("a/c", 1);
+
+  EXPECT_EQ(vector<string>({"a/c", "a", "b"}), sorter.sort());
+}
+
+
+// This test checks what happens when a new sorter client is added as
+// a child of what was previously an internal node.
+TEST(SorterTest, AddChildToInternal)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  sorter.add(slaveId, Resources::parse("cpus:100;mem:100").get());
+
+  sorter.add("x/a");
+  sorter.allocated(
+      "x/a", slaveId, Resources::parse("cpus:10;mem:10").get());
+
+  sorter.add("x/b");
+  sorter.allocated(
+      "x/b", slaveId, Resources::parse("cpus:6;mem:6").get());
+
+  EXPECT_EQ(vector<string>({"x/b", "x/a"}), sorter.sort());
+
+  sorter.add("x");
+  sorter.allocated(
+      "x", slaveId, Resources::parse("cpus:7;mem:7").get());
+
+  EXPECT_EQ(vector<string>({"x/b", "x", "x/a"}), sorter.sort());
+
+  sorter.add("z");
+  sorter.allocated(
+      "z", slaveId, Resources::parse("cpus:20;mem:20").get());
+
+  EXPECT_EQ(vector<string>({"z", "x/b", "x", "x/a"}), sorter.sort());
+
+  sorter.remove("x");
+
+  EXPECT_EQ(vector<string>({"x/b", "x/a", "z"}), sorter.sort());
+}
+
+
+// This test checks what happens when a new sorter client is added as
+// a child of what was previously an inactive leaf node.
+TEST(SorterTest, AddChildToInactiveLeaf)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  sorter.add(slaveId, Resources::parse("cpus:100;mem:100").get());
+
+  sorter.add("a");
+  sorter.allocated(
+      "a", slaveId, Resources::parse("cpus:10;mem:10").get());
+
+  sorter.add("b");
+  sorter.allocated(
+      "b", slaveId, Resources::parse("cpus:6;mem:6").get());
+
+  sorter.deactivate("a");
+
+  EXPECT_EQ(vector<string>({"b"}), sorter.sort());
+
+  sorter.add("a/c");
+  sorter.allocated(
+      "a/c", slaveId, Resources::parse("cpus:5;mem:5").get());
+
+  EXPECT_EQ(vector<string>({"b", "a/c"}), sorter.sort());
+}
+
+
+// This test checks what happens when a sorter client is removed,
+// which allows a leaf node to be collapsed into its parent node. This
+// is basically the inverse situation to `AddChildToLeaf`.
+TEST(SorterTest, RemoveLeafCollapseParent)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  sorter.add(slaveId, Resources::parse("cpus:100;mem:100").get());
+
+  sorter.add("a");
+  sorter.allocated(
+      "a", slaveId, Resources::parse("cpus:10;mem:10").get());
+
+  sorter.add("b");
+  sorter.allocated(
+      "b", slaveId, Resources::parse("cpus:6;mem:6").get());
+
+  sorter.add("a/c");
+  sorter.allocated(
+      "a/c", slaveId, Resources::parse("cpus:5;mem:5").get());
+
+  EXPECT_EQ(vector<string>({"b", "a/c", "a"}), sorter.sort());
+
+  sorter.remove("a/c");
+
+  EXPECT_EQ(vector<string>({"b", "a"}), sorter.sort());
+}
+
+
+// This test checks what happens when a sorter client is removed and a
+// leaf node can be collapsed into its parent node, we correctly
+// propagate the `inactive` flag from leaf -> parent.
+TEST(SorterTest, RemoveLeafCollapseParentInactive)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  sorter.add(slaveId, Resources::parse("cpus:100;mem:100").get());
+
+  sorter.add("a");
+  sorter.allocated(
+      "a", slaveId, Resources::parse("cpus:10;mem:10").get());
+
+  sorter.add("b");
+  sorter.allocated(
+      "b", slaveId, Resources::parse("cpus:6;mem:6").get());
+
+  sorter.add("a/c");
+  sorter.allocated(
+      "a/c", slaveId, Resources::parse("cpus:5;mem:5").get());
+
+  sorter.deactivate("a");
+
+  EXPECT_EQ(vector<string>({"b", "a/c"}), sorter.sort());
+
+  sorter.remove("a/c");
+
+  EXPECT_EQ(vector<string>({"b"}), sorter.sort());
+}
+
+
+// This test checks that setting a weight on an internal node works
+// correctly.
+TEST(SorterTest, ChangeWeightOnSubtree)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  sorter.add(slaveId, Resources::parse("cpus:100;mem:100").get());
+
+  sorter.updateWeight("b", 3);
+  sorter.updateWeight("a", 2);
+
+  sorter.add("a/x");
+  sorter.add("b/y");
+
+  EXPECT_EQ(vector<string>({"a/x", "b/y"}), sorter.sort());
+
+  sorter.allocated(
+      "a/x", slaveId, Resources::parse("cpus:10;mem:10").get());
+
+  sorter.allocated(
+      "b/y", slaveId, Resources::parse("cpus:10;mem:10").get());
+
+  EXPECT_EQ(vector<string>({"b/y", "a/x"}), sorter.sort());
+
+  sorter.add("b/z");
+  sorter.allocated(
+      "b/z", slaveId, Resources::parse("cpus:5;mem:5").get());
+
+  EXPECT_EQ(vector<string>({"b/z", "b/y", "a/x"}), sorter.sort());
+
+  sorter.add("b");
+  sorter.allocated(
+      "b", slaveId, Resources::parse("cpus:4;mem:4").get());
+
+  EXPECT_EQ(vector<string>({"a/x", "b", "b/z", "b/y"}), sorter.sort());
+
+  sorter.add("a/zz");
+  sorter.allocated(
+      "a/zz", slaveId, Resources::parse("cpus:2;mem:2").get());
+
+  EXPECT_EQ(vector<string>({"a/zz", "a/x", "b", "b/z", "b/y"}), sorter.sort());
 }
 
 
@@ -331,8 +886,43 @@ TEST(SorterTest, UpdateAllocation)
 
   hashmap<SlaveID, Resources> allocation = sorter.allocation("a");
   EXPECT_EQ(1u, allocation.size());
-  EXPECT_EQ(newAllocation.get(), allocation[slaveId]);
+  EXPECT_EQ(newAllocation.get(), allocation.at(slaveId));
   EXPECT_EQ(newAllocation.get(), sorter.allocation("a", slaveId));
+}
+
+
+TEST(SorterTest, UpdateAllocationNestedClient)
+{
+  DRFSorter sorter;
+
+  SlaveID slaveId;
+  slaveId.set_value("agentId");
+
+  sorter.add("a/x");
+  sorter.add("b/y");
+
+  sorter.add(slaveId, Resources::parse("cpus:10;mem:10;disk:10").get());
+
+  sorter.allocated(
+      "a/x", slaveId, Resources::parse("cpus:10;mem:10;disk:10").get());
+
+  // Construct an offer operation.
+  Resource volume = Resources::parse("disk", "5", "*").get();
+  volume.mutable_disk()->mutable_persistence()->set_id("ID");
+  volume.mutable_disk()->mutable_volume()->set_container_path("data");
+
+  // Compute the updated allocation.
+  Resources oldAllocation = sorter.allocation("a/x", slaveId);
+  Try<Resources> newAllocation = oldAllocation.apply(CREATE(volume));
+  ASSERT_SOME(newAllocation);
+
+  // Update the resources for the client.
+  sorter.update("a/x", slaveId, oldAllocation, newAllocation.get());
+
+  hashmap<SlaveID, Resources> allocation = sorter.allocation("a/x");
+  EXPECT_EQ(1u, allocation.size());
+  EXPECT_EQ(newAllocation.get(), allocation.at(slaveId));
+  EXPECT_EQ(newAllocation.get(), sorter.allocation("a/x", slaveId));
 }
 
 

@@ -41,8 +41,8 @@ struct Metrics
 
   ~Metrics();
 
-  void add(const std::string& client);
-  void remove(const std::string& client);
+  void add(const std::string& clientName);
+  void remove(const std::string& clientName);
 
   const process::UPID context;
 

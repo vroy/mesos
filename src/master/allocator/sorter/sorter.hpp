@@ -58,11 +58,7 @@ public:
 
   // Adds a client to allocate resources to. A client
   // may be a user or a framework.
-  virtual void add(const std::string& client, double weight = 1) = 0;
-
-  // Updates the weight of a client. The client must have previously
-  // be added to the sorter, but it may currently be inactive.
-  virtual void update(const std::string& client, double weight) = 0;
+  virtual void add(const std::string& client) = 0;
 
   // Removes a client.
   virtual void remove(const std::string& client) = 0;
@@ -74,6 +70,11 @@ public:
   // Removes a client from the sort, so it won't get allocated to.
   // It is a no-op if the client is already not in the sort.
   virtual void deactivate(const std::string& client) = 0;
+
+  // Updates the weight of a client path. This changes the share of
+  // all clients in the subtree identified by this path -- both
+  // clients currently in the sorter, and those that are added later.
+  virtual void updateWeight(const std::string& path, double weight) = 0;
 
   // Specify that resources have been allocated to the given client.
   virtual void allocated(
