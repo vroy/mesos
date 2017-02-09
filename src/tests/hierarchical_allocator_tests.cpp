@@ -704,6 +704,121 @@ TEST_F(HierarchicalAllocatorTest, DRFWithFairnessExclusion)
 }
 
 
+// This test checks allocator behavior when offering resources to
+// frameworks that register using nested ("hierarchical") roles.
+TEST_F(HierarchicalAllocatorTest, NestedRoleDRF)
+{
+  // Pausing the clock is not necessary, but ensures that the test
+  // doesn't rely on the batch allocation in the allocator, which
+  // would slow down the test.
+  Clock::pause();
+
+  initialize();
+
+  // Total cluster resources will become cpus=2, mem=1024.
+  SlaveInfo slave1 = createSlaveInfo("cpus:2;mem:1024;disk:0");
+  allocator->addSlave(
+      slave1.id(),
+      slave1,
+      AGENT_CAPABILITIES(),
+      None(),
+      slave1.resources(),
+      {});
+
+  // framework1 will be offered all of slave1's resources since it is
+  // the only framework running so far.
+  FrameworkInfo framework1 = createFrameworkInfo({"a/b"});
+  allocator->addFramework(framework1.id(), framework1, {}, true);
+
+  {
+    Allocation expected = Allocation(
+        framework1.id(),
+        {{"a/b", {{slave1.id(), slave1.resources()}}}});
+
+    AWAIT_EXPECT_EQ(expected, allocations.get());
+  }
+
+  // a share = 1 (cpus=2, mem=1024)
+  //   a/b share = 1 (cpus=2, mem=1024)
+  //     framework1 share = 1
+
+  // Add a new slave, along with two new frameworks in roles "a/c" and
+  // "d/e". We expect the new slave's resources to be offered to "d/e"
+  // rather than "a/c", since the role subtree under "a" has more
+  // resources than the "d" subtree.
+
+  // Total cluster resources will become cpus=3, mem=1536.
+  SlaveInfo slave2 = createSlaveInfo("cpus:1;mem:512;disk:0");
+  allocator->addSlave(
+      slave2.id(),
+      slave2,
+      AGENT_CAPABILITIES(),
+      None(),
+      slave2.resources(),
+      {});
+
+  FrameworkInfo framework2 = createFrameworkInfo({"a/c"});
+  allocator->addFramework(framework2.id(), framework2, {}, true);
+
+  FrameworkInfo framework3 = createFrameworkInfo({"d/e"});
+  allocator->addFramework(framework3.id(), framework3, {}, true);
+
+  {
+    Allocation expected = Allocation(
+        framework3.id(),
+        {{"d/e", {{slave2.id(), slave2.resources()}}}});
+
+    AWAIT_EXPECT_EQ(expected, allocations.get());
+  }
+
+  // a share = 0.666667 (cpus=2, mem=1024)
+  //   a/b share = 0.666667 (cpus=2, mem=1024)
+  //     framework1 share = 1
+  //   a/c share = 0
+  //     framework2 share = 0
+  // d share = 0.333333 (cpus=1, mem=512)
+  //   d/e share = 0.333333 (cpus=1, mem=512)
+  //     framework3 share = 1
+
+  // Add a new slave and a new framework in the role "d/f". The new
+  // slave's resources should be allocated to the new framework (and
+  // not the framework in "a/c"), because the "d" subtree has fewer
+  // allocated resources than the "a" subtree.
+
+  // Total cluster resources will become cpus=5, mem=2560.
+  SlaveInfo slave3 = createSlaveInfo("cpus:2;mem:1024;disk:0");
+  allocator->addSlave(
+      slave3.id(),
+      slave3,
+      AGENT_CAPABILITIES(),
+      None(),
+      slave3.resources(),
+      {});
+
+  FrameworkInfo framework4 = createFrameworkInfo({"d/f"});
+  allocator->addFramework(framework4.id(), framework4, {}, true);
+
+  {
+    Allocation expected = Allocation(
+        framework4.id(),
+        {{"d/f", {{slave3.id(), slave3.resources()}}}});
+
+    AWAIT_EXPECT_EQ(expected, allocations.get());
+  }
+
+  // a share = 0.4 (cpus=2, mem=1024)
+  //   a/b share = 0.4 (cpus=2, mem=1024)
+  //     framework1 share = 1
+  //   a/c share = 0
+  //     framework2 share = 0
+  // d share = 0.6 (cpus=3, mem=1536)
+  //   d/e share = 0.2 (cpus=1, mem=512)
+  //     framework3 share = 1
+  //   d/f share = 0.4 (cpus=2, mem=1024)
+  //     framework4 share = 1
+}
+
+
 // This test ensures that an offer filter larger than the
 // allocation interval effectively filters out resources.
 TEST_F(HierarchicalAllocatorTest, OfferFilter)

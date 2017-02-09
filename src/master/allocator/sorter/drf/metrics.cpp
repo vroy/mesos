@@ -54,34 +54,36 @@ Metrics::~Metrics()
 }
 
 
-void Metrics::add(const string& client)
+void Metrics::add(const string& clientName)
 {
-  CHECK(!dominantShares.contains(client));
+  CHECK(!dominantShares.contains(clientName));
 
   Gauge gauge(
-      path::join(prefix, client, "/shares/", "/dominant"),
-      defer(context, [this, client]() {
+      path::join(prefix, clientName, "/shares/", "/dominant"),
+      defer(context, [this, clientName]() {
         // The client may have been removed if the dispatch
         // occurs after the client is removed but before the
         // metric is removed.
-        if (sorter->contains(client)) {
-          return sorter->calculateShare(client);
+        Client* client = sorter->find(clientName);
+
+        if (client == nullptr) {
+          return 0.0;
         }
 
-        return 0.0;
+        return sorter->calculateShare(*client);
       }));
 
-  dominantShares.put(client, gauge);
+  dominantShares.put(clientName, gauge);
   process::metrics::add(gauge);
 }
 
 
-void Metrics::remove(const string& client)
+void Metrics::remove(const string& clientName)
 {
-  CHECK(dominantShares.contains(client));
+  CHECK(dominantShares.contains(clientName));
 
-  process::metrics::remove(dominantShares.at(client));
-  dominantShares.erase(client);
+  process::metrics::remove(dominantShares.at(clientName));
+  dominantShares.erase(clientName);
 }
 
 } // namespace allocator {

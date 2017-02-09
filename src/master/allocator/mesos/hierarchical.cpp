@@ -1268,7 +1268,7 @@ void HierarchicalAllocatorProcess::setQuota(
   // Persist quota in memory and add the role into the corresponding
   // allocation group.
   quotas[role] = quota;
-  quotaRoleSorter->add(role, roleWeight(role));
+  quotaRoleSorter->add(role);
 
   // Copy allocation information for the quota'ed role.
   if (roleSorter->contains(role)) {
@@ -1318,33 +1318,14 @@ void HierarchicalAllocatorProcess::updateWeights(
 {
   CHECK(initialized);
 
-  bool rebalance = false;
-
-  // Update the weight for each specified role.
   foreach (const WeightInfo& weightInfo, weightInfos) {
     CHECK(weightInfo.has_role());
-    weights[weightInfo.role()] = weightInfo.weight();
 
-    // The allocator only needs to rebalance if there is a framework
-    // registered with this role. The roleSorter contains only roles
-    // for registered frameworks, but quotaRoleSorter contains any role
-    // with quota set, regardless of whether any frameworks are registered
-    // with that role.
-    if (quotas.contains(weightInfo.role())) {
-      quotaRoleSorter->update(weightInfo.role(), weightInfo.weight());
-    }
-
-    if (roleSorter->contains(weightInfo.role())) {
-      rebalance = true;
-      roleSorter->update(weightInfo.role(), weightInfo.weight());
-    }
+    quotaRoleSorter->updateWeight(weightInfo.role(), weightInfo.weight());
+    roleSorter->updateWeight(weightInfo.role(), weightInfo.weight());
   }
 
-  // If at least one of the updated roles has registered
-  // frameworks, then trigger the allocation.
-  if (rebalance) {
-    allocate();
-  }
+  allocate();
 }
 
 
@@ -2036,16 +2017,6 @@ void HierarchicalAllocatorProcess::expire(
 }
 
 
-double HierarchicalAllocatorProcess::roleWeight(const string& name) const
-{
-  if (weights.contains(name)) {
-    return weights.at(name);
-  } else {
-    return 1.0; // Default weight.
-  }
-}
-
-
 bool HierarchicalAllocatorProcess::isWhitelisted(
     const SlaveID& slaveId) const
 {
@@ -2224,7 +2195,7 @@ void HierarchicalAllocatorProcess::trackFrameworkUnderRole(
   if (!roles.contains(role)) {
     roles[role] = {};
     CHECK(!roleSorter->contains(role));
-    roleSorter->add(role, roleWeight(role));
+    roleSorter->add(role);
 
     CHECK(!frameworkSorters.contains(role));
     frameworkSorters.insert({role, Owned<Sorter>(frameworkSorterFactory())});
