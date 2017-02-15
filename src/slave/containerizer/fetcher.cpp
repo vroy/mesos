@@ -822,12 +822,13 @@ Future<Nothing> FetcherProcess::run(
 
   // We pass arguments to the fetcher program by means of an
   // environment variable.
-  map<string, string> environment = os::environment();
-
-  // The libprocess port is explicitly removed because this will conflict
-  // with the already-running agent.
-  environment.erase("LIBPROCESS_PORT");
-  environment.erase("LIBPROCESS_ADVERTISE_PORT");
+  map<string, string> environment;
+  foreachpair (const string& key, const string& value, os::environment()) {
+    if (!strings::startsWith(key, "LIBPROCESS_") &&
+        !strings::startsWith(key, "MESOS_")) {
+      environment.emplace(key, value);
+    }
+  }
 
   environment["MESOS_FETCHER_INFO"] = stringify(JSON::protobuf(info));
 
