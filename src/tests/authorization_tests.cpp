@@ -885,6 +885,118 @@ TYPED_TEST(AuthorizationTest, PrincipalNotOfferedAnyRoleRestrictive)
 }
 
 
+TYPED_TEST(AuthorizationTest, RegisterFrameworkHierarchical)
+{
+  ACLs acls;
+
+  {
+    mesos::ACL::RegisterFramework* acl = acls.add_register_frameworks();
+    acl->mutable_principals()->add_values("elizabeth-ii");
+    acl->mutable_roles()->add_values("king/%");
+    acl->mutable_roles()->add_values("king");
+  }
+
+  {
+    mesos::ACL::RegisterFramework* acl = acls.add_register_frameworks();
+    acl->mutable_principals()->add_values("charles");
+    acl->mutable_roles()->add_values("king/%");
+  }
+
+  {
+    mesos::ACL::RegisterFramework* acl = acls.add_register_frameworks();
+    acl->mutable_principals()->add_values("arzbishop");
+    acl->mutable_roles()->add_values("king");
+  }
+
+  {
+    mesos::ACL::RegisterFramework* acl = acls.add_register_frameworks();
+    acl->mutable_principals()->set_type(mesos::ACL::Entity::ANY);
+    acl->mutable_roles()->set_type(mesos::ACL::Entity::NONE);
+  }
+
+  // Create an `Authorizer` with the ACLs.
+  Try<Authorizer*> create = TypeParam::create(parameterize(acls));
+  ASSERT_SOME(create);
+  Owned<Authorizer> authorizer(create.get());
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::REGISTER_FRAMEWORK);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->mutable_framework_info()->set_role("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::REGISTER_FRAMEWORK);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()
+        ->mutable_framework_info()->set_role("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::REGISTER_FRAMEWORK);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()
+        ->mutable_framework_info()->set_role("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::REGISTER_FRAMEWORK);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_framework_info()->set_role("king");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::REGISTER_FRAMEWORK);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_framework_info()->set_role("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::REGISTER_FRAMEWORK);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()
+        ->mutable_framework_info()->set_role("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::REGISTER_FRAMEWORK);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->mutable_framework_info()->set_role("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::REGISTER_FRAMEWORK);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()
+        ->mutable_framework_info()->set_role("king/prince");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::REGISTER_FRAMEWORK);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()
+        ->mutable_framework_info()->set_role("king/prince/duke");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+}
+
 // Tests the authorization of ACLs used for dynamic reservation of resources.
 TYPED_TEST(AuthorizationTest, Reserve)
 {
@@ -903,6 +1015,31 @@ TYPED_TEST(AuthorizationTest, Reserve)
     mesos::ACL::ReserveResources* acl = acls.add_reserve_resources();
     acl->mutable_principals()->add_values("baz");
     acl->mutable_roles()->add_values("ads");
+  }
+
+  {
+    // Principal "elizabeth-ii" can reserve for the "king" role and its
+    // nested ones.
+    mesos::ACL::ReserveResources* acl = acls.add_reserve_resources();
+    acl->mutable_principals()->add_values("elizabeth-ii");
+    acl->mutable_roles()->add_values("king/%");
+    acl->mutable_roles()->add_values("king");
+  }
+
+  {
+    // Principal "charles" can reserve for any role below the "king/" role.
+    // Not not in "king" irself.
+    mesos::ACL::ReserveResources* acl = acls.add_reserve_resources();
+    acl->mutable_principals()->add_values("charles");
+    acl->mutable_roles()->add_values("king/%");
+  }
+
+  {
+    // Principal "arzbishop" can reserve only for the "king" role but not
+    // in any nested one.
+    mesos::ACL::ReserveResources* acl = acls.add_reserve_resources();
+    acl->mutable_principals()->add_values("arzbishop");
+    acl->mutable_roles()->add_values("king");
   }
 
   {
@@ -1023,6 +1160,78 @@ TYPED_TEST(AuthorizationTest, Reserve)
     request.set_action(authorization::RESERVE_RESOURCES);
     request.mutable_subject()->set_value("zelda");
     request.mutable_object()->mutable_resource()->set_role("ads");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::RESERVE_RESOURCES);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->mutable_resource()->set_role("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::RESERVE_RESOURCES);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->mutable_resource()->set_role("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::RESERVE_RESOURCES);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->mutable_resource()->set_role("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::RESERVE_RESOURCES);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_resource()->set_role("king");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::RESERVE_RESOURCES);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_resource()->set_role("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::RESERVE_RESOURCES);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_resource()->set_role("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::RESERVE_RESOURCES);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->mutable_resource()->set_role("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::RESERVE_RESOURCES);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->mutable_resource()->set_role("king/prince");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::RESERVE_RESOURCES);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->mutable_resource()->set_role("king/prince/duke");
     AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
   }
 }
@@ -1230,6 +1439,38 @@ TYPED_TEST(AuthorizationTest, CreateVolume)
   }
 
   {
+    // Principal "elizabeth-ii" can create volumes for the "king" role and its
+    // nested ones.
+    mesos::ACL::CreateVolume* acl = acls.add_create_volumes();
+    acl->mutable_principals()->add_values("elizabeth-ii");
+    acl->mutable_roles()->add_values("king/%");
+    acl->mutable_roles()->add_values("king");
+  }
+
+  {
+    // Principal "charles" can create volumes for any role below the "king/"
+    // role. Not not in "king" irself.
+    mesos::ACL::CreateVolume* acl = acls.add_create_volumes();
+    acl->mutable_principals()->add_values("charles");
+    acl->mutable_roles()->add_values("king/%");
+  }
+
+  {
+    // Principal "arzbishop" can create volumes only for the "king" role but not
+    // in any nested one.
+    mesos::ACL::CreateVolume* acl = acls.add_create_volumes();
+    acl->mutable_principals()->add_values("arzbishop");
+    acl->mutable_roles()->add_values("king");
+  }
+
+  {
+    // No other principals can reserve resources.
+    mesos::ACL::CreateVolume* acl = acls.add_create_volumes();
+    acl->mutable_principals()->set_type(mesos::ACL::Entity::ANY);
+    acl->mutable_roles()->set_type(mesos::ACL::Entity::NONE);
+  }
+
+  {
     // No other principals can create volumes.
     mesos::ACL::CreateVolume* acl = acls.add_create_volumes();
     acl->mutable_principals()->set_type(mesos::ACL::Entity::ANY);
@@ -1323,6 +1564,78 @@ TYPED_TEST(AuthorizationTest, CreateVolume)
     request.set_action(authorization::CREATE_VOLUME);
     request.mutable_subject()->set_value("zelda");
     request.mutable_object()->mutable_resource()->set_role("panda");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::CREATE_VOLUME);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->mutable_resource()->set_role("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::CREATE_VOLUME);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->mutable_resource()->set_role("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::CREATE_VOLUME);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->mutable_resource()->set_role("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::CREATE_VOLUME);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_resource()->set_role("king");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::CREATE_VOLUME);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_resource()->set_role("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::CREATE_VOLUME);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_resource()->set_role("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::CREATE_VOLUME);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->mutable_resource()->set_role("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::CREATE_VOLUME);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->mutable_resource()->set_role("king/prince");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::CREATE_VOLUME);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->mutable_resource()->set_role("king/prince/duke");
     AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
   }
 }
@@ -1515,6 +1828,25 @@ TYPED_TEST(AuthorizationTest, UpdateQuota)
   }
 
   {
+    mesos::ACL::UpdateQuota* acl = acls.add_update_quotas();
+    acl->mutable_principals()->add_values("elizabeth-ii");
+    acl->mutable_roles()->add_values("king/%");
+    acl->mutable_roles()->add_values("king");
+  }
+
+  {
+    mesos::ACL::UpdateQuota* acl = acls.add_update_quotas();
+    acl->mutable_principals()->add_values("charles");
+    acl->mutable_roles()->add_values("king/%");
+  }
+
+  {
+    mesos::ACL::UpdateQuota* acl = acls.add_update_quotas();
+    acl->mutable_principals()->add_values("arzbishop");
+    acl->mutable_roles()->add_values("king");
+  }
+
+  {
     // No other principal can update quotas.
     mesos::ACL::UpdateQuota* acl = acls.add_update_quotas();
     acl->mutable_principals()->set_type(mesos::ACL::Entity::ANY);
@@ -1569,6 +1901,81 @@ TYPED_TEST(AuthorizationTest, UpdateQuota)
     request.set_action(authorization::UPDATE_QUOTA);
     request.mutable_subject()->set_value("jeff");
     request.mutable_object()->mutable_quota_info()->set_role("prod");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::UPDATE_QUOTA);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->mutable_quota_info()->set_role("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::UPDATE_QUOTA);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->mutable_quota_info()->set_role("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::UPDATE_QUOTA);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()
+        ->mutable_quota_info()->set_role("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::UPDATE_QUOTA);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_quota_info()->set_role("king");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::UPDATE_QUOTA);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->mutable_quota_info()->set_role("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::UPDATE_QUOTA);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()
+        ->mutable_quota_info()->set_role("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::UPDATE_QUOTA);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->mutable_quota_info()->set_role("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::UPDATE_QUOTA);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->mutable_quota_info()->set_role("king/prince");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::UPDATE_QUOTA);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()
+        ->mutable_quota_info()->set_role("king/prince/duke");
     AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
   }
 }
@@ -3799,6 +4206,25 @@ TYPED_TEST(AuthorizationTest, ViewRole)
   }
 
   {
+    mesos::ACL::ViewRole* acl = acls.add_view_roles();
+    acl->mutable_principals()->add_values("elizabeth-ii");
+    acl->mutable_roles()->add_values("king/%");
+    acl->mutable_roles()->add_values("king");
+  }
+
+  {
+    mesos::ACL::ViewRole* acl = acls.add_view_roles();
+    acl->mutable_principals()->add_values("charles");
+    acl->mutable_roles()->add_values("king/%");
+  }
+
+  {
+    mesos::ACL::ViewRole* acl = acls.add_view_roles();
+    acl->mutable_principals()->add_values("arzbishop");
+    acl->mutable_roles()->add_values("king");
+  }
+
+  {
     // No other principal can view any role.
     mesos::ACL::ViewRole* acl = acls.add_view_roles();
     acl->mutable_principals()->set_type(mesos::ACL::Entity::ANY);
@@ -3837,6 +4263,78 @@ TYPED_TEST(AuthorizationTest, ViewRole)
     request.mutable_object()->set_value("bar");
 
     AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::VIEW_ROLE);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->set_value("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::VIEW_ROLE);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->set_value("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::VIEW_ROLE);
+    request.mutable_subject()->set_value("elizabeth-ii");
+    request.mutable_object()->set_value("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::VIEW_ROLE);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->set_value("king");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::VIEW_ROLE);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->set_value("king/prince");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::VIEW_ROLE);
+    request.mutable_subject()->set_value("charles");
+    request.mutable_object()->set_value("king/prince/duke");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::VIEW_ROLE);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->set_value("king");
+    AWAIT_EXPECT_TRUE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::VIEW_ROLE);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->set_value("king/prince");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
+  }
+
+  {
+    authorization::Request request;
+    request.set_action(authorization::VIEW_ROLE);
+    request.mutable_subject()->set_value("arzbishop");
+    request.mutable_object()->set_value("king/prince/duke");
+    AWAIT_EXPECT_FALSE(authorizer.get()->authorized(request));
   }
 }
 
