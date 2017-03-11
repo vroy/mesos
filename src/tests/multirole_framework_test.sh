@@ -307,7 +307,7 @@ function test_reserved_resources {
   echo "${NORMAL}"
 
   # Get the agent id and make the reservations on it.
-  AGENT_ID=$(curl --silent http://$(hostname):5050/slaves | jq '.slaves.[0].id')
+  AGENT_ID=$(curl --silent http://$(hostname):5050/slaves | jq '.slaves | .[0] | .id')
 
   RESERVATIONS='
   {
@@ -361,7 +361,7 @@ function test_reserved_resources {
     ]
   }'
 
-  curl --silent -d"{$RESERVATIONS}" http://$(hostname):5050/unreserve
+  curl --silent -d"${RESERVATIONS}" http://$(hostname):5050/unreserve
 }
 
 function test_fair_share {
