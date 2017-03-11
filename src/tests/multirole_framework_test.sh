@@ -28,25 +28,6 @@ function mkdtemp_ {
   mktemp -d "${PWD:-/tmp}"/"${1}".XXXXXX
 }
 
-function setup_env {
-  # shellcheck source=/dev/null
-  source "${MESOS_SOURCE_DIR}"/support/colors.sh
-  # shellcheck source=/dev/null
-  source "${MESOS_SOURCE_DIR}"/support/atexit.sh
-
-  export LD_LIBRARY_PATH=${MESOS_BUILD_DIR}/src/.libs
-  MASTER=${MESOS_SBIN_DIR}/mesos-master
-  AGENT=${MESOS_SBIN_DIR}/mesos-agent
-  MULTIROLE_FRAMEWORK=${MESOS_HELPER_DIR}/multirole-framework
-
-  # The mesos binaries expect MESOS_ prefixed environment variables
-  # to correspond to flags, so we unset these here.
-  unset MESOS_BUILD_DIR
-  unset MESOS_SOURCE_DIR
-  unset MESOS_HELPER_DIR
-  unset MESOS_VERBOSE
-}
-
 function cleanup {
   rm -f framework_id
 }
@@ -196,7 +177,22 @@ function run_framework {
     --tasks="${MESOS_TASKS}"
 }
 
-setup_env
+# shellcheck source=/dev/null
+source "${MESOS_SOURCE_DIR}"/support/colors.sh
+# shellcheck source=/dev/null
+source "${MESOS_SOURCE_DIR}"/support/atexit.sh
+
+export LD_LIBRARY_PATH=${MESOS_BUILD_DIR}/src/.libs
+MASTER=${MESOS_SBIN_DIR}/mesos-master
+AGENT=${MESOS_SBIN_DIR}/mesos-agent
+MULTIROLE_FRAMEWORK=${MESOS_HELPER_DIR}/multirole-framework
+
+# The mesos binaries expect MESOS_ prefixed environment variables
+# to correspond to flags, so we unset these here.
+unset MESOS_BUILD_DIR
+unset MESOS_SOURCE_DIR
+unset MESOS_HELPER_DIR
+unset MESOS_VERBOSE
 
 function test_multirole_framework_registration {
   echo "${BOLD}"
