@@ -749,8 +749,8 @@ cleanup
 # test_fair_share
 # cleanup
 
-# test_reserved_resources
-# cleanup
+test_reserved_resources
+cleanup
 
 # test_quota
 # cleanup
