@@ -178,9 +178,53 @@ function run_framework {
 }
 
 # shellcheck source=/dev/null
-source "${MESOS_SOURCE_DIR}"/support/colors.sh
+# Enables using colors for stdout.
+if test -t 1; then
+    # Now check the _number_ of colors.
+    NUM_COLORS=$(tput colors)
+    if test -n "${NUM_COLORS}" && test ${NUM_COLORS} -ge 8; then
+        NORMAL=$(tput sgr0)
+        BOLD=$(tput bold)
+        UNDERLINE=$(tput smul)
+        REVERSE=$(tput smso)
+        BLINK=$(tput blink)
+        BLACK=$(tput setaf 0)
+        RED=$(tput setaf 1)
+        GREEN=$(tput setaf 2)
+        YELLOW=$(tput setaf 3)
+        BLUE=$(tput setaf 4)
+        MAGENTA=$(tput setaf 5)
+        CYAN=$(tput setaf 6)
+        WHITE=$(tput setaf 7)
+    fi
+fi
+
 # shellcheck source=/dev/null
-source "${MESOS_SOURCE_DIR}"/support/atexit.sh
+# Provides an "atexit" mechanism for scripts.
+
+# Array of commands to eval.
+declare -a __atexit_cmds
+
+# Helper for eval'ing commands.
+__atexit() {
+    for cmd in "${__atexit_cmds[@]}"; do
+        eval ${cmd}
+    done
+}
+
+# Usage: atexit command arg1 arg2 arg3
+atexit() {
+    # Determine the current number of commands.
+    local length=${#__atexit_cmds[*]}
+
+    # Add this command to the end.
+    __atexit_cmds[${length}]="${*}"
+
+    # Set the trap handler if this was the first command added.
+    if [[ ${length} -eq 0 ]]; then
+        trap __atexit EXIT
+    fi
+}
 
 export LD_LIBRARY_PATH=${MESOS_BUILD_DIR}/src/.libs
 MASTER=${MESOS_SBIN_DIR}/mesos-master
@@ -190,7 +234,6 @@ MULTIROLE_FRAMEWORK=${MESOS_HELPER_DIR}/multirole-framework
 # The mesos binaries expect MESOS_ prefixed environment variables
 # to correspond to flags, so we unset these here.
 unset MESOS_BUILD_DIR
-unset MESOS_SOURCE_DIR
 unset MESOS_HELPER_DIR
 unset MESOS_VERBOSE
 
