@@ -55,7 +55,7 @@ function start_master {
   MESOS_WORK_DIR=$(mkdtemp_ mesos-master)
   atexit rm -rf "${MESOS_WORK_DIR}"
 
-  MASTER_PORT=$(random_port)
+  MASTER_PORT=5050
 
   ACLS=${1:-\{\"permissive\": true\}}
 
