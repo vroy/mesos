@@ -522,8 +522,8 @@ function test_failover {
   echo "* A framework changing its roles can learn about its previous tasks.                       *"
   echo "********************************************************************************************"
   echo "${NORMAL}"
-  start_master
-  start_agent
+  # start_master
+  # start_agent
 
   TASKS='
   {
@@ -705,8 +705,8 @@ function test_hrole_updates {
   echo "********************************************************************************************"
   echo "${NORMAL}"
 
-  start_master
-  start_agent
+  # start_master
+  # start_agent
   cleanup
   MESOS_TASKS='{"tasks": []}' run_framework '["a"]'
   cleanup
@@ -762,14 +762,14 @@ cleanup
 # Multirole-phase II demos
 # ------------------------
 
-# test_failover
-# cleanup
+test_failover
+cleanup
 
 # Hierarchical roles demos
 # ------------------------
 
-# test_hrole_updates
-# cleanup
+test_hrole_updates
+cleanup
 
 # test_hrole_fairness
 # cleanup
