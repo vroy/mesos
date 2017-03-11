@@ -226,16 +226,12 @@ atexit() {
     fi
 }
 
-export LD_LIBRARY_PATH=${MESOS_BUILD_DIR}/src/.libs
+MESOS_PREFIX=/opt/mesosphere/active/mesos
+
+export LD_LIBRARY_PATH=${MESOS_PREFIX}/lib
 MASTER=${MESOS_SBIN_DIR}/mesos-master
 AGENT=${MESOS_SBIN_DIR}/mesos-agent
-MULTIROLE_FRAMEWORK=${MESOS_HELPER_DIR}/multirole-framework
-
-# The mesos binaries expect MESOS_ prefixed environment variables
-# to correspond to flags, so we unset these here.
-unset MESOS_BUILD_DIR
-unset MESOS_HELPER_DIR
-unset MESOS_VERBOSE
+MULTIROLE_FRAMEWORK=${MESOS_PREFIX}/libexec/mesos/tests/multirole-framework
 
 function test_multirole_framework_registration {
   echo "${BOLD}"
