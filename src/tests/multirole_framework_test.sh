@@ -36,13 +36,11 @@ function start_master {
   MESOS_WORK_DIR=$(mkdtemp_ mesos-master)
   atexit rm -rf "${MESOS_WORK_DIR}"
 
-  MASTER_PORT=5050
-
   ACLS=${1:-\{\"permissive\": true\}}
 
   ${MASTER} \
     --ip=127.0.0.1 \
-    --port="$MASTER_PORT" \
+    --port=5050 \
     --acls="${ACLS}" \
     --work_dir="${MESOS_WORK_DIR}" &> "${MESOS_WORK_DIR}.log" &
   MASTER_PID=${!}
@@ -83,7 +81,7 @@ function start_agent {
   ${AGENT} \
     --work_dir="${MESOS_WORK_DIR}" \
     --runtime_dir="${MESOS_RUNTIME_DIR}" \
-    --master=127.0.0.1:"$MASTER_PORT" \
+    --master=127.0.0.1:5050 \
     --port="$AGENT_PORT" \
     --resources="${RESOURCES}" &> "${MESOS_WORK_DIR}.log" &
   AGENT_PID=${!}
@@ -171,7 +169,7 @@ function run_framework {
   echo "${MESOS_TASKS}" | jq .
 
   timeout_ ${MULTIROLE_FRAMEWORK} \
-    --master=127.0.0.1:"$MASTER_PORT" \
+    --master=127.0.0.1:5050 \
     --roles="$ROLES" \
     --max_unsuccessful_offer_cycles=3 \
     --tasks="${MESOS_TASKS}"
@@ -279,7 +277,7 @@ function test_quota {
     ]
   }'
 
-  curl --silent -d"${QUOTA}" http://127.0.0.1:"$MASTER_PORT"/quota
+  curl --silent -d"${QUOTA}" http://127.0.0.1:5050/quota
 
   echo "${BOLD}"
   echo The framework will not get any resources to run tasks with 'roleB'.
@@ -309,7 +307,7 @@ function test_reserved_resources {
   echo "${NORMAL}"
 
   # Get the agent id and make the reservations on it.
-  AGENT_ID=$(curl --silent http://127.0.0.1:"$MASTER_PORT"/slaves | jq '.slaves.[0].id')
+  AGENT_ID=$(curl --silent http://127.0.0.1:5050/slaves | jq '.slaves.[0].id')
 
   RESERVATIONS='
   {
@@ -342,7 +340,7 @@ function test_reserved_resources {
     ]
   }'
 
-  curl --silent -d"${RESERVATIONS}" http://127.0.0.1:"$MASTER_PORT"/reserve
+  curl --silent -d"${RESERVATIONS}" http://127.0.0.1:5050/reserve
 
   run_framework
 }
@@ -652,7 +650,7 @@ function test_hrole_quota_sum_rule {
   # start_master
   # start_agent
 
-  curl http://127.0.0.1:"${MASTER_PORT}"/state | jq '.slaves'
+  curl http://127.0.0.1:5050/state | jq '.slaves'
 
   QUOTA='
   {
@@ -672,19 +670,19 @@ function test_hrole_quota_sum_rule {
   echo "Setting quota for 'dev/' parent role"
   echo ${QUOTA//ROLE/dev} | jq .
   echo "${NORMAL}"
-  echo ${QUOTA//ROLE/dev} | curl -i http://127.0.0.1:"${MASTER_PORT}"/quota | grep -q 'HTTP/1.1 200 OK'
+  echo ${QUOTA//ROLE/dev} | curl -i http://127.0.0.1:5050/quota | grep -q 'HTTP/1.1 200 OK'
 
   echo "${BOLD}"
   echo "Setting quota for 'dev/a' leave role"
   echo ${QUOTA//ROLE/dev\/a} | jq .
   echo "${NORMAL}"
-  echo ${QUOTA//ROLE/dev\/a} | curl -i http://127.0.0.1:"${MASTER_PORT}"/quota | grep -q 'HTTP/1.1 200 OK'
+  echo ${QUOTA//ROLE/dev\/a} | curl -i http://127.0.0.1:5050/quota | grep -q 'HTTP/1.1 200 OK'
 
   echo "${BOLD}"
   echo "Attemting to set quota for 'dev/b' leave role. This fails since the quota set by the parent role is already exhausted."
   echo ${QUOTA//ROLE/dev\/b} | jq .
   echo "${NORMAL}"
-  ! (echo ${QUOTA//ROLE/dev\/b} | curl -i http://127.0.0.1:"${MASTER_PORT}"/quota | grep -q 'HTTP/1.1 200 OK')
+  ! (echo ${QUOTA//ROLE/dev\/b} | curl -i http://127.0.0.1:5050/quota | grep -q 'HTTP/1.1 200 OK')
 }
 
 function test_hrole_updates {
