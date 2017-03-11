@@ -309,59 +309,53 @@ function test_reserved_resources {
   # Get the agent id and make the reservations on it.
   AGENT_ID=$(curl --silent http://$(hostname):5050/slaves | jq '.slaves | .[0] | .id')
 
-  RESERVATIONS='
-  {
-    "slaveId": ${AGENT_ID},
-    "resources": [
-      {
-        "name": "cpus", "type": "SCALAR", "scalar": {"value": 0.5},
-        "reservation": {}, "role": "roleA"
-      },
-      {
-        "name": "mem", "type": "SCALAR", "scalar": {"value": 48},
-        "reservation": {}, "role": "roleA"
-      },
-      {
-        "name": "disk", "type": "SCALAR", "scalar": {"value": 25},
-        "reservation": {}, "role": "roleA"
-      },
-      {
-        "name": "cpus", "type": "SCALAR", "scalar": {"value": 0.5},
-        "reservation": {}, "role": "roleB"
-      },
-      {
-        "name": "mem", "type": "SCALAR", "scalar": {"value": 48},
-        "reservation": {}, "role": "roleB"
-      },
-      {
-        "name": "disk", "type": "SCALAR", "scalar": {"value": 25},
-        "reservation": {}, "role": "roleB"
-      }
-    ]
-  }'
+  RESOURCES='
+  [
+    {
+      "name": "cpus", "type": "SCALAR", "scalar": {"value": 0.5},
+      "reservation": {}, "role": "roleA"
+    },
+    {
+      "name": "mem", "type": "SCALAR", "scalar": {"value": 48},
+      "reservation": {}, "role": "roleA"
+    },
+    {
+      "name": "disk", "type": "SCALAR", "scalar": {"value": 25},
+      "reservation": {}, "role": "roleA"
+    },
+    {
+      "name": "cpus", "type": "SCALAR", "scalar": {"value": 0.5},
+      "reservation": {}, "role": "roleB"
+    },
+    {
+      "name": "mem", "type": "SCALAR", "scalar": {"value": 48},
+      "reservation": {}, "role": "roleB"
+    },
+    {
+      "name": "disk", "type": "SCALAR", "scalar": {"value": 25},
+      "reservation": {}, "role": "roleB"
+    }
+  ]'
 
-  curl --silent -d"${RESERVATIONS}" http://$(hostname):5050/reserve
+  curl --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/reserve
 
   run_framework
 
   # Now unreserve the resources to get back to our original state.
-  RESERVATIONS='
-  {
-    "slaveId": ${AGENT_ID},
-    "resources": [
-      {
-        "name": "cpus", "type": "SCALAR", "scalar": {"value": 1}, "role": "*"
-      },
-      {
-        "name": "mem", "type": "SCALAR", "scalar": {"value": 96}, "role": "*"
-      },
-      {
-        "name": "disk", "type": "SCALAR", "scalar": {"value": 50}, "role": "*"
-      }
-    ]
-  }'
+  RESOURCES='
+  [
+    {
+      "name": "cpus", "type": "SCALAR", "scalar": {"value": 1}, "role": "*"
+    },
+    {
+      "name": "mem", "type": "SCALAR", "scalar": {"value": 96}, "role": "*"
+    },
+    {
+      "name": "disk", "type": "SCALAR", "scalar": {"value": 50}, "role": "*"
+    }
+  ]'
 
-  curl --silent -d"${RESERVATIONS}" http://$(hostname):5050/unreserve
+  curl --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/unreserve
 }
 
 function test_fair_share {
