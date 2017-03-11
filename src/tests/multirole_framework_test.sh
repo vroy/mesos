@@ -277,7 +277,7 @@ function test_quota {
     ]
   }'
 
-  curl --silent -d"${QUOTA}" http://$(hostname):5050/quota
+  curl -i --silent -d"${QUOTA}" http://$(hostname):5050/quota | grep -q 'HTTP/1.1 200 OK'
 
   echo "${BOLD}"
   echo The framework will not get any resources to run tasks with 'roleB'.
@@ -337,12 +337,12 @@ function test_reserved_resources {
     }
   ]'
 
-  curl --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/reserve
+  curl -i --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/reserve | grep -q 'HTTP/1.1 200 OK'
 
   run_framework
 
   # Now unreserve the resources to get back to our original state.
-  curl --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/unreserve
+  curl -i --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/unreserve | grep -q 'HTTP/1.1 200 OK'
 }
 
 function test_fair_share {
