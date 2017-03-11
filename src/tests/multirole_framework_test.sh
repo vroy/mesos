@@ -307,7 +307,7 @@ function test_reserved_resources {
   echo "${NORMAL}"
 
   # Get the agent id and make the reservations on it.
-  AGENT_ID=$(curl --silent http://$(hostname):5050/slaves | jq '.slaves | .[0] | .id')
+  AGENT_ID=$(curl --silent http://$(hostname):5050/slaves | jq -r '.slaves | .[0] | .id')
 
   RESOURCES='
   [
@@ -342,19 +342,6 @@ function test_reserved_resources {
   run_framework
 
   # Now unreserve the resources to get back to our original state.
-  RESOURCES='
-  [
-    {
-      "name": "cpus", "type": "SCALAR", "scalar": {"value": 1}, "role": "*"
-    },
-    {
-      "name": "mem", "type": "SCALAR", "scalar": {"value": 96}, "role": "*"
-    },
-    {
-      "name": "disk", "type": "SCALAR", "scalar": {"value": 50}, "role": "*"
-    }
-  ]'
-
   curl --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/unreserve
 }
 
