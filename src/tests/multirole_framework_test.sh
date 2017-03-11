@@ -649,10 +649,10 @@ function test_hrole_quota_sum_rule {
   echo "This test sets up a quota on a parent role, and the same quota on one of its leaf roles, thereby consuming the whole available quota in the hierarchy. Setting a quota on another leaf role fails."
   echo "${NORMAL}"
 
-  start_master
-  start_agent
+  # start_master
+  # start_agent
 
-  http :"${MASTER_PORT}"/state | jq '.slaves'
+  curl :"${MASTER_PORT}"/state | jq '.slaves'
 
   QUOTA='
   {
@@ -732,36 +732,36 @@ function test_hrole_updates {
 # Multirole-phase I demos
 # -----------------------
 
-test_multirole_framework_registration
-cleanup
+# test_multirole_framework_registration
+# cleanup
 
-test_fair_share
-cleanup
+# test_fair_share
+# cleanup
 
-test_reserved_resources
-cleanup
+# test_reserved_resources
+# cleanup
 
-test_quota
-cleanup
+# test_quota
+# cleanup
 
-test_framework_authz
-cleanup
+# test_framework_authz
+# cleanup
 
 
 # Multirole-phase II demos
 # ------------------------
 
-test_failover
-cleanup
+# test_failover
+# cleanup
 
 # Hierarchical roles demos
 # ------------------------
 
-test_hrole_updates
-cleanup
+# test_hrole_updates
+# cleanup
 
-test_hrole_fairness
-cleanup
+# test_hrole_fairness
+# cleanup
 
 test_hrole_quota_sum_rule
 cleanup
