@@ -629,11 +629,16 @@ function test_hrole_fairness {
   cleanup
   MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "zib"]'
 
+  # TODO(mpark): This is broken currently.
+
   echo "${BOLD}"
   echo "The task in role 'ops/b' ('task2') will have been run last."
-  echo "${NORMAL}"
-  LAST_TASK=$(basename $(ls -t $(find "${MESOS_WORK_DIR}" -name 'task?' -type f) | head -1))
-  [ "${LAST_TASK}" = 'task2' ]
+
+  ACTUAL=$(curl http://$(hostname):5050/frameworks | jq '.frameworks | .[] | select(.id == "$(cat framework_id)") | .completed_tasks | sort_by(.statuses | .[0] | .timestamp) | map(.role)')
+
+  EXPECTED='["dev", "ops/a", "zib", "ops/b"]'
+
+  [ ACTUAL = EXPECTED ]
 }
 
 function test_hrole_quota_sum_rule {
