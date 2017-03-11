@@ -337,12 +337,12 @@ function test_reserved_resources {
     }
   ]'
 
-  curl -i --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/reserve | grep -q 'HTTP/1.1 200 OK'
+  curl -i --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/reserve | grep -q 'HTTP/1.1 202 Accepted'
 
   run_framework
 
   # Now unreserve the resources to get back to our original state.
-  curl -i --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/unreserve | grep -q 'HTTP/1.1 200 OK'
+  curl -i --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/unreserve | grep -q 'HTTP/1.1 202 Accepted'
 }
 
 function test_fair_share {
