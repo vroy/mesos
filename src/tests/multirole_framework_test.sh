@@ -602,19 +602,19 @@ function test_hrole_quota_sum_rule {
   echo "Setting quota for 'dev/' parent role"
   echo ${QUOTA//ROLE/dev} | jq .
   echo "${NORMAL}"
-  echo ${QUOTA//ROLE/dev} | http -h :"${MASTER_PORT}"/quota | grep -q 'HTTP/1.1 200 OK'
+  echo ${QUOTA//ROLE/dev} | curl -i :"${MASTER_PORT}"/quota | grep -q 'HTTP/1.1 200 OK'
 
   echo "${BOLD}"
   echo "Setting quota for 'dev/a' leave role"
   echo ${QUOTA//ROLE/dev\/a} | jq .
   echo "${NORMAL}"
-  echo ${QUOTA//ROLE/dev\/a} | http -h :"${MASTER_PORT}"/quota | grep -q 'HTTP/1.1 200 OK'
+  echo ${QUOTA//ROLE/dev\/a} | curl -i :"${MASTER_PORT}"/quota | grep -q 'HTTP/1.1 200 OK'
 
   echo "${BOLD}"
   echo "Attemting to set quota for 'dev/b' leave role. This fails since the quota set by the parent role is already exhausted."
   echo ${QUOTA//ROLE/dev\/b} | jq .
   echo "${NORMAL}"
-  ! (echo ${QUOTA//ROLE/dev\/b} | http -h :"${MASTER_PORT}"/quota | grep -q 'HTTP/1.1 200 OK')
+  ! (echo ${QUOTA//ROLE/dev\/b} | curl -i :"${MASTER_PORT}"/quota | grep -q 'HTTP/1.1 200 OK')
 }
 
 function test_hrole_updates {
