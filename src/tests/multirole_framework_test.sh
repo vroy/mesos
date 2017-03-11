@@ -301,14 +301,49 @@ function test_reserved_resources {
   echo "* Reserved resources.                                                                      *"
   echo "********************************************************************************************"
   echo "${NORMAL}"
-  start_master
 
   echo "${BOLD}"
   RESOURCES="cpus(roleA):0.5;cpus(roleB):0.5;mem(roleA):48;mem(roleB):48;disk(roleA):25;disk(roleB):25"
-  echo Starting agent with reserved resources: $RESOURCES.
+  echo Starting agent and reserving resources: $RESOURCES.
   echo We expect a framework in both roles to be able to launch tasks on resources from either role.
   echo "${NORMAL}"
-  start_agent "${RESOURCES}"
+
+  # Get the agent id and make the reservations on it.
+  AGENT_ID=$(curl --silent http://127.0.0.1:"$MASTER_PORT"/slaves | jq '.slaves.[0].id')
+
+  RESERVATIONS='
+  {
+    "slaveId": ${AGENT_ID},
+    "resources": [
+      {
+        "name": "cpus", "type": "SCALAR", "scalar": {"value": 0.5},
+        "reservation": {}, "role": "roleA"
+      },
+      {
+        "name": "mem", "type": "SCALAR", "scalar": {"value": 48},
+        "reservation": {}, "role": "roleA"
+      },
+      {
+        "name": "disk", "type": "SCALAR", "scalar": {"value": 25},
+        "reservation": {}, "role": "roleA"
+      },
+      {
+        "name": "cpus", "type": "SCALAR", "scalar": {"value": 0.5},
+        "reservation": {}, "role": "roleB"
+      },
+      {
+        "name": "mem", "type": "SCALAR", "scalar": {"value": 48},
+        "reservation": {}, "role": "roleB"
+      },
+      {
+        "name": "disk", "type": "SCALAR", "scalar": {"value": 25},
+        "reservation": {}, "role": "roleB"
+      },
+    ]
+  }'
+
+  curl --silent -d"${RESERVATIONS}" http://127.0.0.1:"$MASTER_PORT"/reserve
+
   run_framework
 }
 
