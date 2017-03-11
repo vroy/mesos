@@ -229,8 +229,8 @@ atexit() {
 MESOS_PREFIX=/opt/mesosphere/active/mesos
 
 export LD_LIBRARY_PATH=${MESOS_PREFIX}/lib
-MASTER=${MESOS_SBIN_DIR}/mesos-master
-AGENT=${MESOS_SBIN_DIR}/mesos-agent
+# MASTER=${MESOS_SBIN_DIR}/mesos-master
+# AGENT=${MESOS_SBIN_DIR}/mesos-agent
 MULTIROLE_FRAMEWORK=${MESOS_PREFIX}/libexec/mesos/tests/multirole-framework
 
 function test_multirole_framework_registration {
