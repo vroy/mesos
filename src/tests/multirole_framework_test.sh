@@ -336,13 +336,32 @@ function test_reserved_resources {
       {
         "name": "disk", "type": "SCALAR", "scalar": {"value": 25},
         "reservation": {}, "role": "roleB"
-      },
+      }
     ]
   }'
 
   curl --silent -d"${RESERVATIONS}" http://$(hostname):5050/reserve
 
   run_framework
+
+  # Now unreserve the resources to get back to our original state.
+  RESERVATIONS='
+  {
+    "slaveId": ${AGENT_ID},
+    "resources": [
+      {
+        "name": "cpus", "type": "SCALAR", "scalar": {"value": 1}, "role": "*"
+      },
+      {
+        "name": "mem", "type": "SCALAR", "scalar": {"value": 96}, "role": "*"
+      },
+      {
+        "name": "disk", "type": "SCALAR", "scalar": {"value": 50}, "role": "*"
+      }
+    ]
+  }'
+
+  curl --silent -d"{$RESERVATIONS}" http://$(hostname):5050/unreserve
 }
 
 function test_fair_share {
