@@ -237,8 +237,8 @@ function test_multirole_framework_registration {
   echo "* A framework can be in two roles and start tasks on resources allocated for either role.  *"
   echo "********************************************************************************************"
   echo "${NORMAL}"
-  start_master
-  start_agent
+  # start_master
+  # start_agent
   run_framework
 }
 
@@ -749,8 +749,8 @@ function test_hrole_updates {
 # Multirole-phase I demos
 # -----------------------
 
-# test_multirole_framework_registration
-# cleanup
+test_multirole_framework_registration
+cleanup
 
 # test_fair_share
 # cleanup
