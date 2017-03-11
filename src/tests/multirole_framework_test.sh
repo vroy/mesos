@@ -248,8 +248,8 @@ function test_quota {
   echo "* Frameworks in multiple roles can use quota.                                              *"
   echo "********************************************************************************************"
   echo "${NORMAL}"
-  start_master
-  start_agent
+  # start_master
+  # start_agent
 
   echo "${BOLD}"
   echo "Quota'ing all of the agent's resources for 'roleA'."
@@ -357,7 +357,7 @@ function test_fair_share {
   echo "frameworks. We expect one framework to be able to launch both of its tasks immediately,"
   echo "while the other one will have to wait."
   echo "${NORMAL}"
-  start_master
+  # start_master
 
   MESOS_TASKS='
   {
@@ -479,8 +479,9 @@ function test_framework_authz {
   echo "${ACLS}" | python -m json.tool
   echo "${NORMAL}"
 
-  start_master "${ACLS}"
-  start_agent
+  # TODO: Manual restart with ACLs?
+  # start_master "${ACLS}"
+  # start_agent
 
   echo "${BOLD}"
   echo "Attempting to register a framework in role 'roleB' with a"
@@ -577,7 +578,7 @@ function test_hrole_fairness {
 
   echo "${BOLD}"
   echo "When working with hierarchical roles, fair share is determined at each level of the tree."
-  echo "We start three tasks running in roles 'ops/a', 'ops/b', 'dev', and 'biz'. Since tasks under 'ops/' share resources we expect the task in 'ops/b' to run last."
+  echo "We start four tasks running in roles 'ops/a', 'ops/b', 'dev', and 'zib'. Since tasks under 'ops/' share resources we expect the task in 'ops/b' to run last."
   echo "${NORMAL}"
 
   start_master
@@ -619,14 +620,14 @@ function test_hrole_fairness {
         "task": '${TASK1//task1/task3}'
       },
       {
-        "role": "biz",
+        "role": "zib",
         "task": '${TASK1//task1/task4}'
       }
     ]
   }'
 
   cleanup
-  MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "biz"]'
+  MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "zib"]'
 
   echo "${BOLD}"
   echo "The task in role 'ops/b' ('task2') will have been run last."
