@@ -244,6 +244,9 @@ MASTER=${MESOS_PREFIX}/bin/mesos-master
 AGENT=${MESOS_PREFIX}/bin/mesos-agent
 MULTIROLE_FRAMEWORK=${MESOS_PREFIX}/libexec/mesos/tests/multirole-framework
 
+# Make sure we never leak `framework_id` when aborting tests.
+atexit rm -rf framework_id
+
 function test_multirole_framework_registration {
   echo "${BOLD}"
   echo "********************************************************************************************"
