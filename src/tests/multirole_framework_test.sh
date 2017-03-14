@@ -402,6 +402,9 @@ function test_framework_authz {
   echo "********************************************************************************************"
   echo "${NORMAL}"
 
+  export DEFAULT_PRINCIPAL="default_principal"
+  export DEFAULT_SECRET="default_secret"
+
   ACLS='
   {
     "permissive": false,
@@ -428,8 +431,8 @@ function test_framework_authz {
   {
     "credentials": [
     {
-      "principal": "'$DEFAULT_PRINCIPAL'",
-      "secret": "'$DEFAULT_SECRET'"
+      "principal": "'${DEFAULT_PRINCIPAL}'",
+      "secret": "'${DEFAULT_SECRET}'"
     },
     {
       "principal": "OTHER_PRINCIPAL",
@@ -441,6 +444,8 @@ function test_framework_authz {
   echo "${CREDENTIALS}" > credentials.json
   MESOS_CREDENTIALS=file://$(realpath credentials.json)
   export MESOS_CREDENTIALS
+
+  export MESOS_AUTHENTICATE_FRAMEWORKS=1
 
   echo "${BOLD}"
   echo "Using the following ACLs:"
@@ -652,20 +657,20 @@ function test_hrole_quota_sum_rule {
   echo "Setting quota for 'dev/' parent role"
   echo ${QUOTA//ROLE/dev} | jq .
   echo "${NORMAL}"
-  curl -i -d"${QUOTA//ROLE/dev}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK'
+  curl -i --silent -d"${QUOTA//ROLE/dev}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK'
 
   echo "${BOLD}"
   echo "Setting quota for 'dev/a' leave role"
   echo ${QUOTA//ROLE/dev\/a} | jq .
   echo "${NORMAL}"
-  curl -i -d"${QUOTA//ROLE/dev\/a}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK'
+  curl -i --silent -d"${QUOTA//ROLE/dev\/a}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK'
 
 
   echo "${BOLD}"
   echo "Attemting to set quota for 'dev/b' leave role. This fails since the quota set by the parent role is already exhausted."
   echo ${QUOTA//ROLE/dev\/b} | jq .
   echo "${NORMAL}"
-  ! (curl -i -d"${QUOTA//ROLE/dev\/b}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK')
+  ! (curl -i --silent -d"${QUOTA//ROLE/dev\/b}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK')
 
 }
 
@@ -729,7 +734,6 @@ cleanup
 test_framework_authz
 cleanup
 
-
 # Multirole-phase II demos
 # ------------------------
 
@@ -742,8 +746,8 @@ cleanup
 test_hrole_updates
 cleanup
 
-test_hrole_fairness
-cleanup
+# test_hrole_fairness
+# cleanup
 
 test_hrole_quota_sum_rule
 cleanup
