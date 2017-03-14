@@ -103,7 +103,7 @@ function start_master {
     --work_dir="${MESOS_WORK_DIR}" &> "${MESOS_WORK_DIR}.log" &
   MASTER_PID=${!}
 
-  atexit rm -rf "${MESOS_WORK_DIR}.log"
+  # atexit rm -rf "${MESOS_WORK_DIR}.log"
 
   echo "${GREEN}Launched master at ${MASTER_PID}${NORMAL}"
 
