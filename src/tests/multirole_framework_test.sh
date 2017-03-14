@@ -33,6 +33,35 @@ atexit() {
 
 ### END support/atexit.sh ##
 
+### BEGIN support/colors.sh ##
+
+# Enables using colors for stdout.
+if test -t 1; then
+    # Now check the _number_ of colors.
+    NUM_COLORS=$(tput colors)
+    if test -n "${NUM_COLORS}" && test ${NUM_COLORS} -ge 8; then
+        NORMAL=$(tput sgr0)
+        BOLD=$(tput bold)
+        UNDERLINE=$(tput smul)
+        REVERSE=$(tput smso)
+        BLINK=$(tput blink)
+        BLACK=$(tput setaf 0)
+        RED=$(tput setaf 1)
+        GREEN=$(tput setaf 2)
+        YELLOW=$(tput setaf 3)
+        BLUE=$(tput setaf 4)
+        MAGENTA=$(tput setaf 5)
+        CYAN=$(tput setaf 6)
+        WHITE=$(tput setaf 7)
+    fi
+fi
+
+### END support/colors.sh ##
+
+function SUCCESS {
+  echo "${BOLD}${GREEN}"'[SUCCESS]'"${NORMAL}"
+}
+
 function random_port {
   # Generate a random port number.
   echo $((RANDOM + 2000))
@@ -204,31 +233,6 @@ function run_framework {
     --max_unsuccessful_offer_cycles=3 \
     --tasks="${MESOS_TASKS}"
 }
-
-### BEGIN support/colors.sh ##
-
-# Enables using colors for stdout.
-if test -t 1; then
-    # Now check the _number_ of colors.
-    NUM_COLORS=$(tput colors)
-    if test -n "${NUM_COLORS}" && test ${NUM_COLORS} -ge 8; then
-        NORMAL=$(tput sgr0)
-        BOLD=$(tput bold)
-        UNDERLINE=$(tput smul)
-        REVERSE=$(tput smso)
-        BLINK=$(tput blink)
-        BLACK=$(tput setaf 0)
-        RED=$(tput setaf 1)
-        GREEN=$(tput setaf 2)
-        YELLOW=$(tput setaf 3)
-        BLUE=$(tput setaf 4)
-        MAGENTA=$(tput setaf 5)
-        CYAN=$(tput setaf 6)
-        WHITE=$(tput setaf 7)
-    fi
-fi
-
-### END support/colors.sh ##
 
 MESOS_PREFIX=/opt/mesosphere/active/mesos
 
@@ -721,33 +725,42 @@ function test_hrole_updates {
 
 test_multirole_framework_registration
 cleanup
+SUCCESS
 
 test_fair_share
 cleanup
+SUCCESS
 
 test_reserved_resources
 cleanup
+SUCCESS
 
 test_quota
 cleanup
+SUCCESS
 
 test_framework_authz
 cleanup
+SUCCESS
 
 # Multirole-phase II demos
 # ------------------------
 
 test_failover
 cleanup
+SUCCESS
 
 # Hierarchical roles demos
 # ------------------------
 
 test_hrole_updates
 cleanup
+SUCCESS
 
 test_hrole_fairness
 cleanup
+SUCCESS
 
 test_hrole_quota_sum_rule
 cleanup
+SUCCESS
