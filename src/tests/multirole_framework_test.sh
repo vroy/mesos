@@ -66,11 +66,6 @@ function wait {
   read -r -n1 -s -p "Press any key to continue ..."
 }
 
-function random_port {
-  # Generate a random port number.
-  echo $((RANDOM + 2000))
-}
-
 function timeout_ {
   TIME=30 # seconds
   if hash timeout 2>/dev/null; then
@@ -97,7 +92,7 @@ function start_master {
   MESOS_WORK_DIR=$(mkdtemp_ mesos-master)
   atexit rm -rf "${MESOS_WORK_DIR}"
 
-  MASTER_PORT=$(random_port)
+  MASTER_PORT=$((PORT++))
 
   ACLS=${1:-\{\"permissive\": true\}}
 
@@ -137,7 +132,7 @@ function start_agent {
   MESOS_RUNTIME_DIR=$(mkdtemp_ mesos-agent-runtime)
   atexit rm -rf "${MESOS_RUNTIME_DIR}"
 
-  AGENT_PORT=$(random_port)
+  AGENT_PORT=$((PORT++))
 
   RESOURCES=${1:-cpus:1;mem:96;disk:50}
 
@@ -243,6 +238,8 @@ MESOS_PREFIX=/opt/mesosphere/active/mesos
 MASTER=${MESOS_PREFIX}/bin/mesos-master
 AGENT=${MESOS_PREFIX}/bin/mesos-agent
 MULTIROLE_FRAMEWORK=${MESOS_PREFIX}/libexec/mesos/tests/multirole-framework
+
+PORT=2000
 
 # Make sure we never leak `framework_id` when aborting tests.
 atexit rm -rf framework_id
