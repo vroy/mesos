@@ -5,6 +5,34 @@
 set -e
 set -o pipefail
 
+### BEGIN support/atexit.sh ##
+
+# Array of commands to eval.
+declare -a __atexit_cmds
+
+# Helper for eval'ing commands.
+__atexit() {
+    for cmd in "${__atexit_cmds[@]}"; do
+        eval ${cmd}
+    done
+}
+
+# Usage: atexit command arg1 arg2 arg3
+atexit() {
+    # Determine the current number of commands.
+    local length=${#__atexit_cmds[*]}
+
+    # Add this command to the end.
+    __atexit_cmds[${length}]="${*}"
+
+    # Set the trap handler if this was the first command added.
+    if [[ ${length} -eq 0 ]]; then
+        trap __atexit EXIT
+    fi
+}
+
+### END support/atexit.sh ##
+
 function random_port {
   # Generate a random port number.
   echo $((RANDOM + 2000))
@@ -36,11 +64,13 @@ function start_master {
   MESOS_WORK_DIR=$(mkdtemp_ mesos-master)
   atexit rm -rf "${MESOS_WORK_DIR}"
 
+  MASTER_PORT=$(random_port)
+
   ACLS=${1:-\{\"permissive\": true\}}
 
   ${MASTER} \
-    --ip=$(hostname) \
-    --port=5050 \
+    --ip=127.0.0.1 \
+    --port=${MASTER_PORT} \
     --acls="${ACLS}" \
     --work_dir="${MESOS_WORK_DIR}" &> "${MESOS_WORK_DIR}.log" &
   MASTER_PID=${!}
@@ -81,7 +111,7 @@ function start_agent {
   ${AGENT} \
     --work_dir="${MESOS_WORK_DIR}" \
     --runtime_dir="${MESOS_RUNTIME_DIR}" \
-    --master=$(hostname):5050 \
+    --master=127.0.0.1:${MASTER_PORT} \
     --port="$AGENT_PORT" \
     --resources="${RESOURCES}" &> "${MESOS_WORK_DIR}.log" &
   AGENT_PID=${!}
@@ -169,13 +199,14 @@ function run_framework {
   echo "${MESOS_TASKS}" | jq .
 
   timeout_ ${MULTIROLE_FRAMEWORK} \
-    --master=$(hostname):5050 \
+    --master=127.0.0.1:${MASTER_PORT} \
     --roles="$ROLES" \
     --max_unsuccessful_offer_cycles=3 \
     --tasks="${MESOS_TASKS}"
 }
 
-# shellcheck source=/dev/null
+### BEGIN support/colors.sh ##
+
 # Enables using colors for stdout.
 if test -t 1; then
     # Now check the _number_ of colors.
@@ -197,38 +228,12 @@ if test -t 1; then
     fi
 fi
 
-# shellcheck source=/dev/null
-# Provides an "atexit" mechanism for scripts.
-
-# Array of commands to eval.
-declare -a __atexit_cmds
-
-# Helper for eval'ing commands.
-__atexit() {
-    for cmd in "${__atexit_cmds[@]}"; do
-        eval ${cmd}
-    done
-}
-
-# Usage: atexit command arg1 arg2 arg3
-atexit() {
-    # Determine the current number of commands.
-    local length=${#__atexit_cmds[*]}
-
-    # Add this command to the end.
-    __atexit_cmds[${length}]="${*}"
-
-    # Set the trap handler if this was the first command added.
-    if [[ ${length} -eq 0 ]]; then
-        trap __atexit EXIT
-    fi
-}
+### END support/colors.sh ##
 
 MESOS_PREFIX=/opt/mesosphere/active/mesos
 
-export LD_LIBRARY_PATH=${MESOS_PREFIX}/lib
-# MASTER=${MESOS_SBIN_DIR}/mesos-master
-# AGENT=${MESOS_SBIN_DIR}/mesos-agent
+MASTER=${MESOS_PREFIX}/bin/mesos-master
+AGENT=${MESOS_PREFIX}/bin/mesos-agent
 MULTIROLE_FRAMEWORK=${MESOS_PREFIX}/libexec/mesos/tests/multirole-framework
 
 function test_multirole_framework_registration {
@@ -237,8 +242,8 @@ function test_multirole_framework_registration {
   echo "* A framework can be in two roles and start tasks on resources allocated for either role.  *"
   echo "********************************************************************************************"
   echo "${NORMAL}"
-  # start_master
-  # start_agent
+  start_master
+  start_agent
   run_framework
 }
 
@@ -248,8 +253,8 @@ function test_quota {
   echo "* Frameworks in multiple roles can use quota.                                              *"
   echo "********************************************************************************************"
   echo "${NORMAL}"
-  # start_master
-  # start_agent
+  start_master
+  start_agent
 
   echo "${BOLD}"
   echo "Quota'ing all of the agent's resources for 'roleA'."
@@ -277,7 +282,7 @@ function test_quota {
     ]
   }'
 
-  curl -i --silent -d"${QUOTA}" http://$(hostname):5050/quota | grep -q 'HTTP/1.1 200 OK'
+  curl -i --silent -d"${QUOTA}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK'
 
   echo "${BOLD}"
   echo The framework will not get any resources to run tasks with 'roleB'.
@@ -305,44 +310,8 @@ function test_reserved_resources {
   echo Starting agent and reserving resources: $RESOURCES.
   echo We expect a framework in both roles to be able to launch tasks on resources from either role.
   echo "${NORMAL}"
-
-  # Get the agent id and make the reservations on it.
-  AGENT_ID=$(curl --silent http://$(hostname):5050/slaves | jq -r '.slaves | .[0] | .id')
-
-  RESOURCES='
-  [
-    {
-      "name": "cpus", "type": "SCALAR", "scalar": {"value": 0.5},
-      "reservation": {}, "role": "roleA"
-    },
-    {
-      "name": "mem", "type": "SCALAR", "scalar": {"value": 48},
-      "reservation": {}, "role": "roleA"
-    },
-    {
-      "name": "disk", "type": "SCALAR", "scalar": {"value": 25},
-      "reservation": {}, "role": "roleA"
-    },
-    {
-      "name": "cpus", "type": "SCALAR", "scalar": {"value": 0.5},
-      "reservation": {}, "role": "roleB"
-    },
-    {
-      "name": "mem", "type": "SCALAR", "scalar": {"value": 48},
-      "reservation": {}, "role": "roleB"
-    },
-    {
-      "name": "disk", "type": "SCALAR", "scalar": {"value": 25},
-      "reservation": {}, "role": "roleB"
-    }
-  ]'
-
-  curl -i --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/reserve | grep -q 'HTTP/1.1 202 Accepted'
-
+  start_agent "${RESOURCES}"
   run_framework
-
-  # Now unreserve the resources to get back to our original state.
-  curl -i --silent -d slaveId="${AGENT_ID}" -d resources="${RESOURCES}" http://$(hostname):5050/unreserve | grep -q 'HTTP/1.1 202 Accepted'
 }
 
 function test_fair_share {
@@ -357,7 +326,6 @@ function test_fair_share {
   echo "frameworks. We expect one framework to be able to launch both of its tasks immediately,"
   echo "while the other one will have to wait."
   echo "${NORMAL}"
-  # start_master
 
   MESOS_TASKS='
   {
@@ -476,12 +444,11 @@ function test_framework_authz {
 
   echo "${BOLD}"
   echo "Using the following ACLs:"
-  echo "${ACLS}" | python -m json.tool
+  echo "${ACLS}" | jq .
   echo "${NORMAL}"
 
-  # TODO: Manual restart with ACLs?
-  # start_master "${ACLS}"
-  # start_agent
+  start_master "${ACLS}"
+  start_agent
 
   echo "${BOLD}"
   echo "Attempting to register a framework in role 'roleB' with a"
@@ -510,8 +477,8 @@ function test_failover {
   echo "* A framework changing its roles can learn about its previous tasks.                       *"
   echo "********************************************************************************************"
   echo "${NORMAL}"
-  # start_master
-  # start_agent
+  start_master
+  start_agent
 
   TASKS='
   {
@@ -605,7 +572,8 @@ function test_hrole_fairness {
   }
   '
 
-  TASKS='{
+  TASKS='
+  {
     "tasks": [
       {
         "role": "ops/a",
@@ -627,18 +595,26 @@ function test_hrole_fairness {
   }'
 
   cleanup
-  MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "zib"]'
-
-  # TODO(mpark): This is broken currently.
+  MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "biz"]'
 
   echo "${BOLD}"
   echo "The task in role 'ops/b' ('task2') will have been run last."
+  echo "${NORMAL}"
+  LAST_TASK=$(basename $(ls -t $(find "${MESOS_WORK_DIR}" -name 'task?' -type f) | head -1))
+  [ "${LAST_TASK}" = 'task2' ]
 
-  ACTUAL=$(curl http://$(hostname):5050/frameworks | jq '.frameworks | .[] | select(.id == "$(cat framework_id)") | .completed_tasks | sort_by(.statuses | .[0] | .timestamp) | map(.role)')
+  # MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "zib"]'
 
-  EXPECTED='["dev", "ops/a", "zib", "ops/b"]'
+  # # TODO(mpark): This is broken currently.
 
-  [ ACTUAL = EXPECTED ]
+  # echo "${BOLD}"
+  # echo "The task in role 'ops/b' ('task2') will have been run last."
+
+  # ACTUAL=$(curl http://127.0.0.1:${MASTER_PORT}/frameworks | jq '.frameworks | .[] | select(.id == "$(cat framework_id)") | .completed_tasks | sort_by(.statuses | .[0] | .timestamp) | map(.role)')
+
+  # EXPECTED='["dev", "ops/a", "zib", "ops/b"]'
+
+  # [ ACTUAL = EXPECTED ]
 }
 
 function test_hrole_quota_sum_rule {
@@ -653,10 +629,10 @@ function test_hrole_quota_sum_rule {
   echo "This test sets up a quota on a parent role, and the same quota on one of its leaf roles, thereby consuming the whole available quota in the hierarchy. Setting a quota on another leaf role fails."
   echo "${NORMAL}"
 
-  # start_master
-  # start_agent
+  start_master
+  start_agent
 
-  curl --silent http://$(hostname):5050/state | jq '.slaves'
+  curl --silent http://127.0.0.1:${MASTER_PORT}/state | jq '.slaves'
 
   QUOTA='
   {
@@ -676,19 +652,21 @@ function test_hrole_quota_sum_rule {
   echo "Setting quota for 'dev/' parent role"
   echo ${QUOTA//ROLE/dev} | jq .
   echo "${NORMAL}"
-  echo ${QUOTA//ROLE/dev} | curl -i --silent http://$(hostname):5050/quota | grep -q 'HTTP/1.1 200 OK'
+  curl -i -d"${QUOTA//ROLE/dev}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK'
 
   echo "${BOLD}"
   echo "Setting quota for 'dev/a' leave role"
   echo ${QUOTA//ROLE/dev\/a} | jq .
   echo "${NORMAL}"
-  echo ${QUOTA//ROLE/dev\/a} | curl -i --silent http://$(hostname):5050/quota | grep -q 'HTTP/1.1 200 OK'
+  curl -i -d"${QUOTA//ROLE/dev\/a}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK'
+
 
   echo "${BOLD}"
   echo "Attemting to set quota for 'dev/b' leave role. This fails since the quota set by the parent role is already exhausted."
   echo ${QUOTA//ROLE/dev\/b} | jq .
   echo "${NORMAL}"
-  ! (echo ${QUOTA//ROLE/dev\/b} | curl -i --silent http://$(hostname):5050/quota | grep -q 'HTTP/1.1 200 OK')
+  ! (curl -i -d"${QUOTA//ROLE/dev\/b}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK')
+
 }
 
 function test_hrole_updates {
@@ -698,8 +676,8 @@ function test_hrole_updates {
   echo "********************************************************************************************"
   echo "${NORMAL}"
 
-  # start_master
-  # start_agent
+  start_master
+  start_agent
   cleanup
   MESOS_TASKS='{"tasks": []}' run_framework '["a"]'
   cleanup
@@ -739,17 +717,17 @@ function test_hrole_updates {
 test_multirole_framework_registration
 cleanup
 
-# test_fair_share
-# cleanup
+test_fair_share
+cleanup
 
 test_reserved_resources
 cleanup
 
-# test_quota
-# cleanup
+test_quota
+cleanup
 
-# test_framework_authz
-# cleanup
+test_framework_authz
+cleanup
 
 
 # Multirole-phase II demos
@@ -764,8 +742,8 @@ cleanup
 test_hrole_updates
 cleanup
 
-# test_hrole_fairness
-# cleanup
+test_hrole_fairness
+cleanup
 
 test_hrole_quota_sum_rule
 cleanup
