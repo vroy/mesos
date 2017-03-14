@@ -600,7 +600,7 @@ function test_hrole_fairness {
   }'
 
   cleanup
-  MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "biz"]'
+  MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "zib"]'
 
   echo "${BOLD}"
   echo "The task in role 'ops/b' ('task2') will have been run last."
@@ -746,8 +746,8 @@ cleanup
 test_hrole_updates
 cleanup
 
-# test_hrole_fairness
-# cleanup
+test_hrole_fairness
+cleanup
 
 test_hrole_quota_sum_rule
 cleanup
