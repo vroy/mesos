@@ -122,7 +122,7 @@ function start_master {
     exit 2
   fi
 
-  atexit kill ${MASTER_PID}
+  atexit kill -9 ${MASTER_PID}
 }
 
 function start_agent {
@@ -163,7 +163,7 @@ function start_agent {
     exit 2
   fi
 
-  atexit kill ${AGENT_PID}
+  atexit kill -9 ${AGENT_PID}
 }
 
 function run_framework {
