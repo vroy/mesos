@@ -89,7 +89,7 @@ function mkdtemp_ {
   mktemp -d "${PWD:-/tmp}"/"${1}".XXXXXX
 }
 
-function cleanup {
+function cleanup_framework {
   rm -f framework_id
 }
 
@@ -402,7 +402,7 @@ function test_fair_share {
 
   # TODO(bbannier): Make this more testable. We expect this second framework to
   # finish last.
-  cleanup
+  cleanup_framework
   (MESOS_TASKS=$(echo ${MESOS_TASKS} | sed 's/roleB/roleA/g' | sed 's/task1/task1_one_role/g' | sed 's/task2/task2_one_role/g') run_framework '["roleA"]')
 }
 
@@ -476,14 +476,14 @@ function test_framework_authz {
   echo "${BOLD}"
   echo "Attempting to register a framework in roles ['roleA', 'roleB'] with a principal authorized only for 'roleB' fails."
   echo "${NORMAL}"
-  cleanup
+  cleanup_framework
   ! (DEFAULT_PRINCIPAL='OTHER_PRINCIPAL' DEFAULT_SECRET='secret' MESOS_TASKS='{"tasks": []}' run_framework)
 
   echo "${BOLD}"
   echo "Attempting to register a framework in roles ['roleA', 'roleB'] with a"
   echo "principal authorized for both roles succeeds. The framework can"
   echo "run tasks."
-  cleanup
+  cleanup_framework
   echo "${NORMAL}"
   run_framework
 }
@@ -611,7 +611,7 @@ function test_hrole_fairness {
     ]
   }'
 
-  cleanup
+  cleanup_framework
   MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "zib"]'
 
   echo "${BOLD}"
@@ -696,11 +696,11 @@ function test_hrole_updates {
 
   start_master
   start_agent
-  cleanup
+  cleanup_framework
   MESOS_TASKS='{"tasks": []}' run_framework '["a"]'
-  cleanup
+  cleanup_framework
   MESOS_TASKS='{"tasks": []}' run_framework '["a/b"]'
-  cleanup
+  cleanup_framework
 
   TASKS='
   {
@@ -733,27 +733,27 @@ function test_hrole_updates {
 # -----------------------
 
 test_multirole_framework_registration
-cleanup
+cleanup_framework
 SUCCESS
 wait
 
 test_fair_share
-cleanup
+cleanup_framework
 SUCCESS
 wait
 
 test_reserved_resources
-cleanup
+cleanup_framework
 SUCCESS
 wait
 
 test_quota
-cleanup
+cleanup_framework
 SUCCESS
 wait
 
 test_framework_authz
-cleanup
+cleanup_framework
 SUCCESS
 wait
 
@@ -761,7 +761,7 @@ wait
 # ------------------------
 
 test_failover
-cleanup
+cleanup_framework
 SUCCESS
 wait
 
@@ -769,16 +769,16 @@ wait
 # ------------------------
 
 test_hrole_updates
-cleanup
+cleanup_framework
 SUCCESS
 wait
 
 test_hrole_fairness
-cleanup
+cleanup_framework
 SUCCESS
 wait
 
 test_hrole_quota_sum_rule
-cleanup
+cleanup_framework
 SUCCESS
 wait
