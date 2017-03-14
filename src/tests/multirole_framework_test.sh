@@ -321,6 +321,7 @@ function test_reserved_resources {
   echo Starting agent and reserving resources: $RESOURCES.
   echo We expect a framework in both roles to be able to launch tasks on resources from either role.
   echo "${NORMAL}"
+  start_master
   start_agent "${RESOURCES}"
   run_framework
 }
@@ -384,6 +385,7 @@ function test_fair_share {
     ]
   }'
 
+  start_master
   start_agent "cpus:0.5;mem:48;disk:25"
   start_agent "cpus:0.5;mem:48;disk:25"
   start_agent "cpus:0.5;mem:48;disk:25"
