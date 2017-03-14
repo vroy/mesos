@@ -18,6 +18,8 @@
           {templateUrl: 'static/frameworks.html', controller: 'FrameworksCtrl'})
         .when('/frameworks/:id',
           {templateUrl: 'static/framework.html', controller: 'FrameworkCtrl'})
+        .when('/roles',
+          {templateUrl: 'static/roles.html', controller: 'RolesCtrl'})
         .when('/maintenance',
           {templateUrl: 'static/maintenance.html', controller: 'MaintenanceCtrl'})
         .when('/offers',
