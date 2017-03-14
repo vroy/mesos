@@ -62,6 +62,10 @@ function SUCCESS {
   echo "${BOLD}${GREEN}"'[SUCCESS]'"${NORMAL}"
 }
 
+function wait {
+  read -r -n1 -s -p "Press any key to continue ..."
+}
+
 function random_port {
   # Generate a random port number.
   echo $((RANDOM + 2000))
@@ -446,6 +450,7 @@ function test_framework_authz {
   }'
 
   echo "${CREDENTIALS}" > credentials.json
+  atexit rm -f credentials.json
   MESOS_CREDENTIALS=file://$(realpath credentials.json)
   export MESOS_CREDENTIALS
 
@@ -726,22 +731,27 @@ function test_hrole_updates {
 test_multirole_framework_registration
 cleanup
 SUCCESS
+wait
 
 test_fair_share
 cleanup
 SUCCESS
+wait
 
 test_reserved_resources
 cleanup
 SUCCESS
+wait
 
 test_quota
 cleanup
 SUCCESS
+wait
 
 test_framework_authz
 cleanup
 SUCCESS
+wait
 
 # Multirole-phase II demos
 # ------------------------
@@ -749,6 +759,7 @@ SUCCESS
 test_failover
 cleanup
 SUCCESS
+wait
 
 # Hierarchical roles demos
 # ------------------------
@@ -756,11 +767,14 @@ SUCCESS
 test_hrole_updates
 cleanup
 SUCCESS
+wait
 
 test_hrole_fairness
 cleanup
 SUCCESS
+wait
 
 test_hrole_quota_sum_rule
 cleanup
 SUCCESS
+wait
