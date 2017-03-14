@@ -623,6 +623,7 @@ function test_hrole_fairness {
   # MESOS_TASKS="${TASKS}" run_framework '["ops/a", "ops/b", "dev", "zib"]'
 
   # # TODO(mpark): This is broken currently.
+  # # TODO(bbannier): Fix this or remove it.
 
   # echo "${BOLD}"
   # echo "The task in role 'ops/b' ('task2') will have been run last."
