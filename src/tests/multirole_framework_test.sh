@@ -784,3 +784,5 @@ test_hrole_quota_sum_rule
 cleanup_framework
 SUCCESS
 wait
+
+echo "${GREEN}All tests are done. Performing cleanup.${NORMAL}"
