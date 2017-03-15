@@ -260,9 +260,8 @@ public:
       const std::string resourcesRole = resourcesRole_.get();
       const mesos::Resources resources(offer.resources());
 
-      LOG(INFO) << "With " << waitingTasks.size()
-                << " unscheduled tasks, looking for tasks to run on resources "
-                   "on agent '"
+      LOG(INFO) << "Considering " << waitingTasks.size()
+                << " unscheduled tasks for resources offered by agent '"
                 << offer.slave_id() << "': " << stringify(resources);
 
       // Find waiting tasks matching the role this allocation was made to.
@@ -365,8 +364,8 @@ public:
     // restarting the framework later on.
     if (it == runningTasks.end()) {
       if (status.message() == "Reconciliation: Latest task state") {
-        LOG(INFO) << "Learned about running task"
-                     " '" + stringify(status.task_id()) + "'";
+        LOG(INFO) << "Reconciled running task"
+                   " '" + stringify(status.task_id()) + "'. Killing it.";
         runningTasks.push_back(status.task_id());
         driver->killTask(status.task_id());
       }
@@ -427,7 +426,7 @@ private:
       const mesos::FrameworkID& frameworkId,
       const mesos::MasterInfo& masterInfo) override
   {
-    LOG(INFO) << "Registered with framework ID: " << frameworkId;
+    VLOG(1) << "Registered with framework ID: " << frameworkId;
     process::dispatch(
         process,
         &MultiRoleSchedulerProcess::registered,
@@ -455,7 +454,7 @@ private:
       mesos::SchedulerDriver* driver,
       const std::vector<mesos::Offer>& offers) override
   {
-    LOG(INFO) << "Resource offers received";
+    VLOG(1) << "Resource offers received";
 
     process::dispatch(
         process, &MultiRoleSchedulerProcess::resourceOffers, driver, offers);
@@ -472,7 +471,7 @@ private:
   void statusUpdate(
       mesos::SchedulerDriver* driver, const mesos::TaskStatus& status) override
   {
-    LOG(INFO) << "Received status update for task '" << status.task_id() << "'";
+    VLOG(1) << "Received status update for task '" << status.task_id() << "'";
     process::dispatch(
         process, &MultiRoleSchedulerProcess::statusUpdate, driver, status);
   }
@@ -568,7 +567,7 @@ int main(int argc, char** argv)
   // reregistation behavior).
   framework.set_failover_timeout(Days(10).secs());
 
-  LOG(INFO) << "Scheduling tasks: " << flags.tasks_;
+  VLOG(1) << "Scheduling tasks: " << flags.tasks_;
 
   MultiRoleScheduler scheduler(flags, framework);
 
@@ -578,7 +577,7 @@ int main(int argc, char** argv)
   // TODO(hartem): Refactor these into a common set of flags.
   Option<std::string> value = os::getenv("MESOS_AUTHENTICATE_FRAMEWORKS");
   if (value.isSome()) {
-    LOG(INFO) << "Enabling authentication for the framework";
+    VLOG(1) << "Enabling authentication for the framework";
 
     value = os::getenv("DEFAULT_PRINCIPAL");
     if (value.isNone()) {
