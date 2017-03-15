@@ -265,7 +265,7 @@ function test_quota {
   start_agent
 
   echo "${BOLD}"
-  echo "Quota'ing all of the agent's resources for 'roleA'."
+  echo "Setting quota for 'roleA' equal to the resources of a single agent."
   echo "${NORMAL}"
   QUOTA='
   {
@@ -316,7 +316,7 @@ function test_reserved_resources {
   echo "${BOLD}"
   RESOURCES="cpus(roleA):0.5;cpus(roleB):0.5;mem(roleA):48;mem(roleB):48;disk(roleA):25;disk(roleB):25"
   echo Starting agent and reserving resources: $RESOURCES.
-  echo We expect a framework in both roles to be able to launch tasks on resources from either role.
+  echo We expect a framework registered for both roles to be able to launch tasks on resources from either role.
   echo "${NORMAL}"
   start_master
   start_agent "${RESOURCES}"
@@ -328,12 +328,12 @@ function test_fair_share {
   echo "********************************************************************************************"
   echo "* Fair share.                                                                              *"
   echo "********************************************************************************************"
-  echo "Starting a cluster with two frameworks: one framework is in two roles"
+  echo "Starting a cluster with two frameworks: one framework registers for two roles"
   echo "['roleA', 'roleB'] with one task in each, the other is only ['roleA']"
   echo "with two tasks."
-  echo "We also start three agents which fit exactly one workload of the"
-  echo "frameworks. We expect one framework to be able to launch both of its tasks immediately,"
-  echo "while the other one will have to wait."
+  echo "We also start three agents with resources which fit exactly one task each."
+  echo "We expect the two-role framework to be able to launch both of its tasks immediately,"
+  echo "while the single-role framework will have to wait for its second task."
   echo "${NORMAL}"
 
   MESOS_TASKS='
@@ -389,14 +389,14 @@ function test_fair_share {
 
 
   echo "${BOLD}"
-  echo Starting a framework in two roles which will consume the bulk on the resources.
+  echo Registering a framework for two roles. This will consume two agents resources.
   echo "${NORMAL}"
   run_framework &
 
   echo "${BOLD}"
-  echo "Starting a framework in just one role which will be offered not enough"
-  echo "resources initially since the earlier one will be below fair share in"
-  echo "that role ('taskX_one_role' will finish last)."
+  echo "Registering another framework for just one role. It will not be offered enough"
+  echo "resources initially since the earlier framework will be below fair share in"
+  echo "the shared role ('taskX_one_role' will finish last)."
   echo "${NORMAL}"
 
   # TODO(bbannier): Make this more testable. We expect this second framework to
@@ -643,7 +643,9 @@ function test_hrole_quota_sum_rule {
 
   echo "${BOLD}"
   echo "A quota on a parent role provides a limit on the sum its leaf roles can have."
-  echo "This test sets up a quota on a parent role, and the same quota on one of its leaf roles, thereby consuming the whole available quota in the hierarchy. Setting a quota on another leaf role fails."
+  echo "This test sets a quota on a parent role, and the same quota on one of its leaf roles,"
+  echo "thereby consuming the whole available quota in the hierarchy."
+  echo "Setting a quota on another leaf role fails."
   echo "${NORMAL}"
 
   start_master
@@ -682,7 +684,7 @@ function test_hrole_quota_sum_rule {
   echo "Attempting to set quota for 'dev/b' leaf role. This fails since the quota set by the parent role is already exhausted."
   echo ${QUOTA//ROLE/dev\/b} | jq .
   echo "${NORMAL}"
-  ! (curl -i --silent -d"${QUOTA//ROLE/dev\/b}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 200 OK')
+  curl -i --silent -d"${QUOTA//ROLE/dev\/b}" http://127.0.0.1:${MASTER_PORT}/quota | grep -q 'HTTP/1.1 400 Bad Request'
 
 }
 
