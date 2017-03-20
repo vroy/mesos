@@ -26,6 +26,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include <mesos/mesos.hpp>
@@ -85,8 +86,11 @@ using namespace mesos::internal::slave;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::get;
+using std::make_tuple;
 using std::queue;
 using std::string;
+using std::tuple;
 using std::vector;
 
 using process::Clock;
@@ -403,20 +407,89 @@ protected:
     // TODO(josephw): Windows tasks will inherit the environment
     // from the executor for now. Change this if a Windows isolator
     // ever uses the `--task_environment` flag.
-    Environment launchEnvironment;
+    //
+    // Note that we can not use protobuf message merging as that could
+    // cause duplicate keys in the resulting environment.
+
+    typedef tuple<Option<string>, Option<Secret>> ValueSecret;
+    hashmap<string, ValueSecret> environment;
 
     foreachpair (const string& name, const string& value, os::environment()) {
-      Environment::Variable* variable = launchEnvironment.add_variables();
-      variable->set_name(name);
-      variable->set_value(value);
+      environment.put(name, {value, None()});
     }
 
     if (taskEnvironment.isSome()) {
-      launchEnvironment.MergeFrom(taskEnvironment.get());
+      foreach (
+          const Environment::Variable& variable,
+          taskEnvironment.get().variables()) {
+        // Conflicts trumped by isolators `taskEnvironment`.
+        if (environment.contains(variable.name())) {
+          environment.erase(variable.name());
+        }
+
+        if (!variable.has_type() ||
+            (variable.has_type() &&
+             variable.type() == Environment::Variable::VALUE)) {
+          environment.put(
+              variable.name(), make_tuple(variable.value(), None()));
+        } else if (
+            variable.has_type() &&
+            variable.type() == Environment::Variable::SECRET) {
+          environment.put(
+              variable.name(), make_tuple(None(), variable.secret()));
+        } else {
+          LOG(FATAL) << "Unknown environment variable type for key '"
+                     << variable.name() << "' in task environment";
+        }
+      }
     }
 
     if (command.has_environment()) {
-      launchEnvironment.MergeFrom(command.environment());
+      foreach (
+          const Environment::Variable& variable,
+          command.environment().variables()) {
+        // Conflicts trumped by CommandInfo environment.
+        if (environment.contains(variable.name())) {
+          environment.erase(variable.name());
+        }
+
+        if (!variable.has_type() ||
+            (variable.has_type() &&
+             variable.type() == Environment::Variable::VALUE)) {
+          environment.put(
+              variable.name(), make_tuple(variable.value(), None()));
+        } else if (
+            variable.has_type() &&
+            variable.type() == Environment::Variable::SECRET) {
+          environment.put(
+              variable.name(), make_tuple(None(), variable.secret()));
+        } else {
+          LOG(FATAL) << "Unknown environment variable type for key '"
+                     << variable.name() << "' in command environment";
+        }
+      }
+    }
+
+    Environment launchEnvironment;
+
+    foreachpair (
+        const string& name,
+        const ValueSecret& valueSecret,
+        environment) {
+      CHECK(
+          get<0>(valueSecret).isSome() ||
+          get<1>(valueSecret).isSome());
+
+      Environment::Variable* variable = launchEnvironment.add_variables();
+      variable->set_name(name);
+
+      if (std::get<0>(valueSecret).isSome()) {
+        variable->set_type(Environment::Variable::VALUE);
+        variable->set_value(get<0>(valueSecret).get());
+      } else if (get<1>(valueSecret).isSome()) {
+        variable->set_type(Environment::Variable::SECRET);
+        variable->mutable_secret()->CopyFrom(get<1>(valueSecret).get());
+      }
     }
 
     cout << "Starting task " << unacknowledgedTask->task_id() << endl;
