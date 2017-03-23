@@ -658,10 +658,8 @@ int MesosContainerizerLaunch::execute()
       const string& name = variable.name();
       const string& value = variable.value();
 
-      if (environment.contains(name)) {
-        cout << "Overwriting environment variable '" << name
-             << "', original: '" << environment[name]
-             << "', new: '" << value << "'" << endl;
+      if (environment.contains(name) && environment[name] != value) {
+        cout << "Overwriting environment variable '" << name << "'" << endl;
       }
 
       environment[name] = value;
