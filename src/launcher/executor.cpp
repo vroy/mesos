@@ -403,20 +403,39 @@ protected:
     // TODO(josephw): Windows tasks will inherit the environment
     // from the executor for now. Change this if a Windows isolator
     // ever uses the `--task_environment` flag.
-    Environment launchEnvironment;
+    //
+    // Note that we can not use protobuf message merging as that could
+    // cause duplicate keys in the resulting environment.
+
+    hashmap<string, Environment::Variable> environment;
 
     foreachpair (const string& name, const string& value, os::environment()) {
-      Environment::Variable* variable = launchEnvironment.add_variables();
-      variable->set_name(name);
-      variable->set_value(value);
+      Environment::Variable variable;
+      variable.set_name(name);
+      variable.set_value(value);
+      environment.put(name, variable);
     }
 
     if (taskEnvironment.isSome()) {
-      launchEnvironment.MergeFrom(taskEnvironment.get());
+      foreach (
+          const Environment::Variable& variable,
+          taskEnvironment->variables()) {
+        environment[variable.name()] = variable;
+      }
     }
 
     if (command.has_environment()) {
-      launchEnvironment.MergeFrom(command.environment());
+      foreach (
+          const Environment::Variable& variable,
+          command.environment().variables()) {
+        environment[variable.name()] = variable;
+      }
+    }
+
+    Environment launchEnvironment;
+
+    foreachvalue (const Environment::Variable& value, environment) {
+      launchEnvironment.add_variables()->CopyFrom(value);
     }
 
     cout << "Starting task " << unacknowledgedTask->task_id() << endl;
