@@ -143,7 +143,8 @@ pid_t launchTaskPosix(
     ABORT("Failed to launch '" + commandString + "': " + s.error());
   }
 
-  cout << commandString << endl;
+  cout << "Running " << path::join(launcherDir, MESOS_CONTAINERIZER)
+       << " " << MesosContainerizerLaunch::NAME << " [***]" << endl;
 
   return s->pid();
 }
