@@ -399,6 +399,10 @@ set(SCHEDULER_SRC
   scheduler/scheduler.cpp
   )
 
+set(SECRET_SRC
+  secret/resolver.cpp
+  )
+
 set(STATE_SRC
   ${STATE_SRC}
   state/in_memory.cpp
@@ -479,6 +483,7 @@ set(MESOS_SRC
   ${MODULE_SRC}
   ${OCI_SRC}
   ${SCHEDULER_SRC}
+  ${SECRET_SRC}
   ${STATE_SRC}
   ${URI_SRC}
   ${USAGE_SRC}
