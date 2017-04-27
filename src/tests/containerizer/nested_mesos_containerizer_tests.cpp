@@ -656,7 +656,7 @@ TEST_F(NestedMesosContainerizerTest,
 
     Future<bool> launchNested = containerizer->launch(
         nestedContainerId,
-        createCommandInfo("cat " + filename),
+        createCommandInfo("ls " + filename),
         None(),
         None(),
         state.id,
