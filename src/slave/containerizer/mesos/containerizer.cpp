@@ -18,6 +18,8 @@
 
 #include <mesos/module/isolator.hpp>
 
+#include <mesos/secret/fetcher.hpp>
+
 #include <mesos/slave/isolator.hpp>
 
 #include <process/collect.hpp>
@@ -145,6 +147,7 @@ Try<MesosContainerizer*> MesosContainerizer::create(
     const Flags& flags,
     bool local,
     Fetcher* fetcher,
+    const Option<SecretFetcher*>& secretFetcher,
     const Option<NvidiaComponents>& nvidia)
 {
   // Modify `flags` based on the deprecated `isolation` flag (and then
@@ -405,6 +408,7 @@ Try<MesosContainerizer*> MesosContainerizer::create(
       flags_,
       local,
       fetcher,
+      secretFetcher,
       Owned<Launcher>(launcher.get()),
       provisioner,
       isolators);
@@ -415,6 +419,7 @@ Try<MesosContainerizer*> MesosContainerizer::create(
     const Flags& flags,
     bool local,
     Fetcher* fetcher,
+    const Option<SecretFetcher*>& secretFetcher,
     const Owned<Launcher>& launcher,
     const Shared<Provisioner>& provisioner,
     const vector<Owned<Isolator>>& isolators)
@@ -439,6 +444,7 @@ Try<MesosContainerizer*> MesosContainerizer::create(
       new MesosContainerizerProcess(
           flags,
           fetcher,
+          secretFetcher,
           ioSwitchboard.get(),
           launcher,
           provisioner,

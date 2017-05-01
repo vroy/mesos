@@ -958,6 +958,10 @@ mesos::internal::slave::Flags::Flags()
       "A comma-separated list of hook modules to be\n"
       "installed inside the agent.");
 
+  add(&Flags::secret_fetcher,
+      "secret_fetcher",
+      "Module to use for fetching secrets.");
+
   add(&Flags::resource_estimator,
       "resource_estimator",
       "The name of the resource estimator to use for oversubscription.");

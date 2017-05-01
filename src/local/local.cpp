@@ -29,6 +29,9 @@
 #include <mesos/module/authorizer.hpp>
 #include <mesos/module/contender.hpp>
 #include <mesos/module/detector.hpp>
+#include <mesos/module/secretfetcher.hpp>
+
+#include <mesos/secret/fetcher.hpp>
 
 #include <mesos/slave/resource_estimator.hpp>
 
@@ -73,6 +76,8 @@
 #include "slave/gc.hpp"
 #include "slave/slave.hpp"
 #include "slave/status_update_manager.hpp"
+
+#include "secret/fetcher.hpp"
 
 #include "slave/containerizer/containerizer.hpp"
 #include "slave/containerizer/fetcher.hpp"
@@ -438,8 +443,23 @@ PID<Master> launch(const Flags& flags, Allocator* _allocator)
       slaveFlags.launcher = "posix";
     }
 
+    // Initialize SecretFetcher.
+    SecretFetcher* secretFetcher;
+    if (slaveFlags.secret_fetcher.isSome()) {
+      Try<SecretFetcher*> result =
+        ModuleManager::create<SecretFetcher>(slaveFlags.secret_fetcher.get());
+      if (result.isError()) {
+        EXIT(EXIT_FAILURE)
+          << "Failed to initialize secret fetcher: " << result.error();
+      }
+      secretFetcher = result.get();
+    } else {
+      secretFetcher = new DefaultSecretFetcher();
+    }
+
+
     Try<Containerizer*> containerizer =
-      Containerizer::create(slaveFlags, true, fetchers->back());
+      Containerizer::create(slaveFlags, true, fetchers->back(), secretFetcher);
 
     if (containerizer.isError()) {
       EXIT(EXIT_FAILURE)

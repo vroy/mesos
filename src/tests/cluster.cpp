@@ -81,6 +81,8 @@
 #include "master/detector/standalone.hpp"
 #include "master/detector/zookeeper.hpp"
 
+#include "secret/fetcher.hpp"
+
 #include "slave/flags.hpp"
 #include "slave/gc.hpp"
 #include "slave/slave.hpp"
@@ -415,8 +417,11 @@ Try<process::Owned<Slave>> Slave::start(
     // Create a new fetcher.
     slave->fetcher.reset(new slave::Fetcher());
 
-    Try<slave::Containerizer*> _containerizer =
-      slave::Containerizer::create(flags, true, slave->fetcher.get());
+    Try<slave::Containerizer*> _containerizer = slave::Containerizer::create(
+        flags,
+        true,
+        slave->fetcher.get(),
+        &slave->defaultSecretFetcher); // Use the default secret fetcher.
 
     if (_containerizer.isError()) {
       return Error("Failed to create containerizer: " + _containerizer.error());
