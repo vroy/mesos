@@ -19,6 +19,10 @@
 
 #include <glog/logging.h>
 
+#include <mesos/docker/spec.hpp>
+
+#include <mesos/secret/secretfetcher.hpp>
+
 #include <stout/hashmap.hpp>
 #include <stout/json.hpp>
 #include <stout/os.hpp>
@@ -27,8 +31,6 @@
 #include <process/defer.hpp>
 #include <process/dispatch.hpp>
 #include <process/id.hpp>
-
-#include <mesos/docker/spec.hpp>
 
 #include "slave/containerizer/mesos/provisioner/constants.hpp"
 #include "slave/containerizer/mesos/provisioner/utils.hpp"
@@ -57,6 +59,8 @@ using process::dispatch;
 using process::spawn;
 using process::terminate;
 using process::wait;
+
+using mesos::secret::SecretFetcher;
 
 namespace mesos {
 namespace internal {
@@ -111,7 +115,9 @@ private:
 };
 
 
-Try<Owned<slave::Store>> Store::create(const Flags& flags)
+Try<Owned<slave::Store>> Store::create(
+    const Flags& flags,
+    const Option<SecretFetcher*>& secretFetcher)
 {
   // TODO(jieyu): We should inject URI fetcher from top level, instead
   // of creating it here.

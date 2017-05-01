@@ -22,6 +22,8 @@
 
 #include <mesos/docker/spec.hpp>
 
+#include <mesos/secret/secretfetcher.hpp>
+
 #include <process/collect.hpp>
 #include <process/defer.hpp>
 #include <process/dispatch.hpp>
@@ -58,6 +60,8 @@ using mesos::internal::slave::AUFS_BACKEND;
 using mesos::internal::slave::BIND_BACKEND;
 using mesos::internal::slave::COPY_BACKEND;
 using mesos::internal::slave::OVERLAY_BACKEND;
+
+using mesos::secret::SecretFetcher;
 
 using mesos::slave::ContainerState;
 
@@ -146,7 +150,9 @@ static Try<Nothing> validateBackend(
 }
 
 
-Try<Owned<Provisioner>> Provisioner::create(const Flags& flags)
+Try<Owned<Provisioner>> Provisioner::create(
+    const Flags& flags,
+    const Option<SecretFetcher*>& secretFetcher)
 {
   const string _rootDir = slave::paths::getProvisionerDir(flags.work_dir);
 

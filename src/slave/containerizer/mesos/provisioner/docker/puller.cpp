@@ -14,6 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <mesos/secret/secretfetcher.hpp>
+
 #include <stout/strings.hpp>
 #include <stout/try.hpp>
 
@@ -24,6 +26,8 @@
 using process::Owned;
 using process::Shared;
 
+using mesos::secret::SecretFetcher;
+
 namespace mesos {
 namespace internal {
 namespace slave {
@@ -31,7 +35,8 @@ namespace docker {
 
 Try<Owned<Puller>> Puller::create(
     const Flags& flags,
-    const Shared<uri::Fetcher>& fetcher)
+    const Shared<uri::Fetcher>& fetcher,
+    const Option<SecretFetcher*>& secretFetcher)
 {
   // TODO(tnachen): Support multiple registries in the puller.
   if (strings::startsWith(flags.docker_registry, "/")) {
@@ -43,7 +48,9 @@ Try<Owned<Puller>> Puller::create(
     return puller.get();
   }
 
-  Try<Owned<Puller>> puller = RegistryPuller::create(flags, fetcher);
+  Try<Owned<Puller>> puller =
+    RegistryPuller::create(flags, fetcher, secretFetcher);
+
   if (puller.isError()) {
     return Error("Failed to create registry puller: " + puller.error());
   }

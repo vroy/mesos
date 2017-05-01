@@ -17,6 +17,8 @@
 #ifndef __PROVISIONER_DOCKER_STORE_HPP__
 #define __PROVISIONER_DOCKER_STORE_HPP__
 
+#include <mesos/secret/secretfetcher.hpp>
+
 #include <process/owned.hpp>
 
 #include <stout/try.hpp>
@@ -39,7 +41,9 @@ class StoreProcess;
 class Store : public slave::Store
 {
 public:
-  static Try<process::Owned<slave::Store>> create(const Flags& flags);
+  static Try<process::Owned<slave::Store>> create(
+      const Flags& flags,
+      const Option<mesos::secret::SecretFetcher*>& secretFetcher = None());
 
   // This allows the puller to be mocked for testing.
   static Try<process::Owned<slave::Store>> create(

@@ -18,6 +18,8 @@
 
 #include <mesos/type_utils.hpp>
 
+#include <mesos/secret/secretfetcher.hpp>
+
 #include <stout/error.hpp>
 #include <stout/foreach.hpp>
 #include <stout/strings.hpp>
@@ -32,17 +34,23 @@ using std::string;
 
 using process::Owned;
 
+using mesos::secret::SecretFetcher;
+
 namespace mesos {
 namespace internal {
 namespace slave {
 
-Try<hashmap<Image::Type, Owned<Store>>> Store::create(const Flags& flags)
+Try<hashmap<Image::Type, Owned<Store>>> Store::create(
+    const Flags& flags,
+    const Option<SecretFetcher*>& secretFetcher)
 {
   if (flags.image_providers.isNone()) {
     return hashmap<Image::Type, Owned<Store>>();
   }
 
-  hashmap<Image::Type, Try<Owned<Store>>(*)(const Flags&)> creators;
+  hashmap<Image::Type, Try<Owned<Store>>(*)(
+      const Flags&, const Option<SecretFetcher*>&)> creators;
+
   creators.put(Image::APPC, &appc::Store::create);
   creators.put(Image::DOCKER, &docker::Store::create);
 
@@ -59,7 +67,7 @@ Try<hashmap<Image::Type, Owned<Store>>> Store::create(const Flags& flags)
       return Error("Unsupported image type '" + type + "'");
     }
 
-    Try<Owned<Store>> store = creators[imageType](flags);
+    Try<Owned<Store>> store = creators[imageType](flags, secretFetcher);
     if (store.isError()) {
       return Error(
           "Failed to create store for image type '" +
