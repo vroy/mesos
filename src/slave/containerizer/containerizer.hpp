@@ -22,12 +22,15 @@
 #include <mesos/mesos.hpp>
 #include <mesos/resources.hpp>
 
+#include <mesos/secret/resolver.hpp>
+
 #include <mesos/slave/containerizer.hpp>
 
 #include <process/future.hpp>
 #include <process/http.hpp>
 #include <process/owned.hpp>
 #include <process/process.hpp>
+#include <process/shared.hpp>
 
 #include <stout/duration.hpp>
 #include <stout/hashset.hpp>
@@ -60,7 +63,8 @@ public:
   static Try<Containerizer*> create(
       const Flags& flags,
       bool local,
-      Fetcher* fetcher);
+      Fetcher* fetcher,
+      SecretResolver* secretResolver = nullptr);
 
   // Determine slave resources from flags, probing the system or
   // querying a delegate.
