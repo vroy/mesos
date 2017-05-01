@@ -20,6 +20,10 @@
 #include <list>
 #include <vector>
 
+#include <mesos/secret/resolver.hpp>
+
+#include <mesos/slave/isolator.hpp>
+
 #include <process/id.hpp>
 #include <process/http.hpp>
 #include <process/sequence.hpp>
@@ -30,8 +34,6 @@
 #include <stout/hashmap.hpp>
 #include <stout/multihashmap.hpp>
 #include <stout/os/int_fd.hpp>
-
-#include <mesos/slave/isolator.hpp>
 
 #include "slave/state.hpp"
 
@@ -60,12 +62,14 @@ public:
       const Flags& flags,
       bool local,
       Fetcher* fetcher,
+      SecretResolver* secretResolver = nullptr,
       const Option<NvidiaComponents>& nvidia = None());
 
   static Try<MesosContainerizer*> create(
       const Flags& flags,
       bool local,
       Fetcher* fetcher,
+      SecretResolver* secretResolver,
       const process::Owned<Launcher>& launcher,
       const process::Shared<Provisioner>& provisioner,
       const std::vector<process::Owned<mesos::slave::Isolator>>& isolators);
@@ -131,6 +135,7 @@ public:
   MesosContainerizerProcess(
       const Flags& _flags,
       Fetcher* _fetcher,
+      SecretResolver* _secretResolver,
       IOSwitchboard* _ioSwitchboard,
       const process::Owned<Launcher>& _launcher,
       const process::Shared<Provisioner>& _provisioner,
@@ -138,6 +143,7 @@ public:
     : ProcessBase(process::ID::generate("mesos-containerizer")),
       flags(_flags),
       fetcher(_fetcher),
+      secretResolver(_secretResolver),
       ioSwitchboard(_ioSwitchboard),
       launcher(_launcher),
       provisioner(_provisioner),
@@ -299,6 +305,7 @@ private:
 
   const Flags flags;
   Fetcher* fetcher;
+  SecretResolver* secretResolver;
   IOSwitchboard* ioSwitchboard;
   const process::Owned<Launcher> launcher;
   const process::Shared<Provisioner> provisioner;
