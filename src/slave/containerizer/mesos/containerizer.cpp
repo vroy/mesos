@@ -65,6 +65,7 @@
 
 #include "slave/containerizer/mesos/io/switchboard.hpp"
 
+#include "slave/containerizer/mesos/isolators/environment_secret.hpp"
 #include "slave/containerizer/mesos/isolators/filesystem/posix.hpp"
 #include "slave/containerizer/mesos/isolators/posix.hpp"
 #include "slave/containerizer/mesos/isolators/posix/disk.hpp"
@@ -221,6 +222,11 @@ Try<MesosContainerizer*> MesosContainerizer::create(
   }
 #endif // __linux__
 
+  // Always add environment secret isolator.
+  if (!strings::contains(flags_.isolation, "environment_secret")) {
+    flags_.isolation += ",environment_secret";
+  }
+
   LOG(INFO) << "Using isolation: " << flags_.isolation;
 
   // Create the launcher for the MesosContainerizer.
@@ -358,6 +364,11 @@ Try<MesosContainerizer*> MesosContainerizer::create(
 #if !defined(__WINDOWS__) && defined(WITH_NETWORK_ISOLATOR)
     {"network/port_mapping", &PortMappingIsolatorProcess::create},
 #endif
+
+    {"environment_secret",
+      [secretResolver] (const Flags& flags) -> Try<Isolator*> {
+        return EnvironmentSecretIsolatorProcess::create(flags, secretResolver);
+      }},
   };
 
   vector<string> tokens = strings::tokenize(flags_.isolation, ",");
@@ -1490,10 +1501,16 @@ Future<bool> MesosContainerizerProcess::_launch(
   // contribute to the resulting container environment.
   containerEnvironment.MergeFrom(launchInfo.environment());
 
-  // Include user specified environment.
+  // Include any user specified environment variables.
+  // Skip over any secrets as they have been resolved by the environment_secret
+  // isolator.
   if (container->config.command_info().has_environment()) {
-    containerEnvironment.MergeFrom(
-        container->config.command_info().environment());
+    foreach (const Environment::Variable& variable,
+             container->config.command_info().environment().variables()) {
+      if (variable.type() != Environment::Variable::SECRET) {
+        containerEnvironment.add_variables()->CopyFrom(variable);
+      }
+    }
   }
 
   // Set the aggregated environment of the launch command.
