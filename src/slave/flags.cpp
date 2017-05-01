@@ -958,6 +958,11 @@ mesos::internal::slave::Flags::Flags()
       "A comma-separated list of hook modules to be\n"
       "installed inside the agent.");
 
+  add(&Flags::secret_resolver,
+      "secret_resolver",
+      "The name of the secret resolve module to use for resolving\n"
+      "environment and file-based secrets.\n");
+
   add(&Flags::resource_estimator,
       "resource_estimator",
       "The name of the resource estimator to use for oversubscription.");
