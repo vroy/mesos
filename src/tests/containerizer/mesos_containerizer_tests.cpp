@@ -297,6 +297,7 @@ public:
         flags,
         true,
         fetcher,
+        nullptr,
         std::move(launcher),
         provisioner->share(),
         isolators);
@@ -731,6 +732,7 @@ TEST_F(MesosContainerizerDestroyTest, DestroyWhileFetching)
       flags,
       true,
       &fetcher,
+      nullptr,
       launcher,
       provisioner->share(),
       vector<Owned<Isolator>>());
@@ -808,6 +810,7 @@ TEST_F(MesosContainerizerDestroyTest, DestroyWhilePreparing)
       flags,
       true,
       &fetcher,
+      nullptr,
       launcher,
       provisioner->share(),
       {Owned<Isolator>(isolator)});
@@ -931,6 +934,7 @@ TEST_F(MesosContainerizerProvisionerTest, ProvisionFailed)
       flags,
       true,
       &fetcher,
+      nullptr,
       launcher,
       Shared<Provisioner>(provisioner),
       vector<Owned<Isolator>>());
@@ -1019,6 +1023,7 @@ TEST_F(MesosContainerizerProvisionerTest, DestroyWhileProvisioning)
       flags,
       true,
       &fetcher,
+      nullptr,
       launcher,
       Shared<Provisioner>(provisioner),
       vector<Owned<Isolator>>());
@@ -1114,6 +1119,7 @@ TEST_F(MesosContainerizerProvisionerTest, IsolatorCleanupBeforePrepare)
       flags,
       true,
       &fetcher,
+      nullptr,
       launcher,
       Shared<Provisioner>(provisioner),
       {Owned<Isolator>(isolator)});
@@ -1207,6 +1213,7 @@ TEST_F(MesosContainerizerDestroyTest, LauncherDestroyFailure)
       flags,
       true,
       &fetcher,
+      nullptr,
       launcher,
       provisioner->share(),
       vector<Owned<Isolator>>());
