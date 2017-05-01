@@ -959,6 +959,7 @@ libmesos_no_3rdparty_la_SOURCES +=					\
   slave/containerizer/mesos/paths.cpp					\
   slave/containerizer/mesos/utils.cpp					\
   slave/containerizer/mesos/io/switchboard.cpp				\
+  slave/containerizer/mesos/isolators/environment_secret.cpp		\
   slave/containerizer/mesos/isolators/docker/volume/driver.cpp		\
   slave/containerizer/mesos/isolators/docker/volume/paths.cpp		\
   slave/containerizer/mesos/isolators/filesystem/posix.cpp		\
@@ -1089,6 +1090,7 @@ libmesos_no_3rdparty_la_SOURCES +=					\
   slave/containerizer/mesos/paths.hpp					\
   slave/containerizer/mesos/utils.hpp					\
   slave/containerizer/mesos/io/switchboard.hpp				\
+  slave/containerizer/mesos/isolators/environment_secret.hpp		\
   slave/containerizer/mesos/isolators/posix.hpp				\
   slave/containerizer/mesos/isolators/filesystem/posix.hpp		\
   slave/containerizer/mesos/isolators/filesystem/windows.hpp		\
@@ -2342,6 +2344,7 @@ mesos_tests_SOURCES =						\
   tests/containerizer/docker_containerizer_tests.cpp		\
   tests/containerizer/docker_spec_tests.cpp			\
   tests/containerizer/docker_tests.cpp				\
+  tests/containerizer/environment_secret_isolator_tests.cpp	\
   tests/containerizer/io_switchboard_tests.cpp			\
   tests/containerizer/isolator_tests.cpp			\
   tests/containerizer/launcher.cpp				\
