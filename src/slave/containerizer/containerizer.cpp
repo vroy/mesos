@@ -18,6 +18,8 @@
 #include <set>
 #include <vector>
 
+#include <mesos/secret/secretfetcher.hpp>
+
 #include <process/dispatch.hpp>
 #include <process/owned.hpp>
 
@@ -50,6 +52,8 @@ using std::map;
 using std::set;
 using std::string;
 using std::vector;
+
+using mesos::secret::SecretFetcher;
 
 using namespace process;
 
@@ -208,7 +212,8 @@ Try<Resources> Containerizer::resources(const Flags& flags)
 Try<Containerizer*> Containerizer::create(
     const Flags& flags,
     bool local,
-    Fetcher* fetcher)
+    Fetcher* fetcher,
+    const Option <SecretFetcher*>& secretFetcher)
 {
   // Get the set of containerizer types.
   const vector<string> _types = strings::split(flags.containerizers, ",");
@@ -277,8 +282,8 @@ Try<Containerizer*> Containerizer::create(
 
   foreach (const string& type, containerizerTypes) {
     if (type == "mesos") {
-      Try<MesosContainerizer*> containerizer =
-        MesosContainerizer::create(flags, local, fetcher, nvidia);
+      Try<MesosContainerizer*> containerizer = MesosContainerizer::create(
+          flags, local, fetcher, secretFetcher, nvidia);
       if (containerizer.isError()) {
         return Error("Could not create MesosContainerizer: " +
                      containerizer.error());

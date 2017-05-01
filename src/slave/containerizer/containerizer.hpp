@@ -22,6 +22,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/resources.hpp>
 
+#include <mesos/secret/secretfetcher.hpp>
+
 #include <mesos/slave/containerizer.hpp>
 
 #include <process/future.hpp>
@@ -60,7 +62,8 @@ public:
   static Try<Containerizer*> create(
       const Flags& flags,
       bool local,
-      Fetcher* fetcher);
+      Fetcher* fetcher,
+      const Option<mesos::secret::SecretFetcher*>& secretFetcher);
 
   // Determine slave resources from flags, probing the system or
   // querying a delegate.
