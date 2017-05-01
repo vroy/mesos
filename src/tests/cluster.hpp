@@ -54,6 +54,8 @@
 #include "master/flags.hpp"
 #include "master/master.hpp"
 
+#include "secret/fetcher.hpp"
+
 #include "slave/constants.hpp"
 #include "slave/flags.hpp"
 #include "slave/gc.hpp"
@@ -212,6 +214,8 @@ private:
   // because the cleanup logic acts upon the containerizer (regardless
   // of who created it).
   slave::Containerizer* containerizer = nullptr;
+
+  secret::DefaultSecretFetcher defaultSecretFetcher;
 
   // Dependencies that are created by the factory method.
   process::Owned<Authorizer> authorizer;

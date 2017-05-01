@@ -27,6 +27,9 @@
 #include <mesos/mesos.hpp>
 
 #include <mesos/module/anonymous.hpp>
+#include <mesos/module/secretfetcher.hpp>
+
+#include <mesos/secret/secretfetcher.hpp>
 
 #include <mesos/slave/resource_estimator.hpp>
 
@@ -63,6 +66,8 @@
 
 #include "module/manager.hpp"
 
+#include "secret/fetcher.hpp"
+
 #include "slave/gc.hpp"
 #include "slave/slave.hpp"
 #include "slave/status_update_manager.hpp"
@@ -78,6 +83,9 @@ using mesos::modules::Anonymous;
 using mesos::modules::ModuleManager;
 
 using mesos::master::detector::MasterDetector;
+
+using mesos::secret::DefaultSecretFetcher;
+using mesos::secret::SecretFetcher;
 
 using mesos::slave::QoSController;
 using mesos::slave::ResourceEstimator;
@@ -232,7 +240,7 @@ int main(int argc, char** argv)
   //   contender/detector might depend upon anonymous modules.
   // * Hooks.
   // * Systemd support (if it exists).
-  // * Fetcher and Containerizer.
+  // * Fetcher, SecretFetcher, and Containerizer.
   // * Master detector.
   // * Authorizer.
   // * Garbage collector.
@@ -435,8 +443,22 @@ int main(int argc, char** argv)
 
   Fetcher* fetcher = new Fetcher();
 
+  // Initialize SecretFetcher.
+  SecretFetcher* secretFetcher;
+  if (flags.secret_fetcher.isSome()) {
+    Try<SecretFetcher*> result =
+      ModuleManager::create<SecretFetcher>(flags.secret_fetcher.get());
+    if (result.isError()) {
+      EXIT(EXIT_FAILURE)
+        << "Failed to initialize secret fetcher: " << result.error();
+    }
+    secretFetcher = result.get();
+  } else {
+    secretFetcher = new DefaultSecretFetcher();
+  }
+
   Try<Containerizer*> containerizer =
-    Containerizer::create(flags, false, fetcher);
+    Containerizer::create(flags, false, fetcher, secretFetcher);
 
   if (containerizer.isError()) {
     EXIT(EXIT_FAILURE)
