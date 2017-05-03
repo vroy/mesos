@@ -571,10 +571,17 @@ TEST_F(NestedMesosContainerizerTest,
   ContainerID containerId;
   containerId.set_value(UUID::random().toString());
 
+  // Use a pipe to synchronize with the top-level container.
+  Try<std::array<int, 2>> pipes_ = os::pipe();
+  ASSERT_SOME(pipes_);
+
+  const std::array<int, 2>& pipes = pipes_.get();
+
   const string filename = "nested_inherits_work_dir";
 
   CommandInfo command = createCommandInfo(
-      "touch " + filename + " && sleep 1000");
+      "touch " + filename + ";echo running >&" +
+      stringify(pipes[1]) +";sleep 1000");
 
   ExecutorInfo executor = createExecutorInfo("executor", command, "cpus:1");
 
@@ -592,6 +599,12 @@ TEST_F(NestedMesosContainerizerTest,
       true); // TODO(benh): Ever want to test not checkpointing?
 
   AWAIT_ASSERT_TRUE(launch);
+
+  // Wait for the parent container to start running its task
+  // before launching a debug container inside it.
+  AWAIT_READY(process::io::poll(pipes[0], process::io::READ));
+  close(pipes[1]);
+  close(pipes[0]);
 
   Future<ContainerStatus> status = containerizer->status(containerId);
   AWAIT_READY(status);
