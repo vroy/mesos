@@ -1474,11 +1474,36 @@ Future<bool> MesosContainerizerProcess::_launch(
     // DEBUG containers must have a parent.
     CHECK(containerId.has_parent());
 
+    launchInfo.clear_working_directory();
+
     if (containers_[containerId.parent()]->launchInfo.isSome()) {
       launchInfo.set_working_directory(
           containers_[containerId.parent()]->launchInfo->working_directory());
-    } else {
-      launchInfo.clear_working_directory();
+
+      // For the command executor case, even if the task itself has a root
+      // filesystem, the executor container still uses the host filesystem,
+      // hence `ContainerLaunchInfo.working_directory`, which points to the
+      // executor working directory in the host filesystem, may be different
+      // from the task working directory in the root filesystem. Fall back
+      // to the parent container working directory if task working directory
+      // is not present.
+      //
+      // TODO(alexr): Remove this once we no longer support executorless
+      // command tasks in favor of default executor.
+      if (containers_[containerId.parent()]->config.has_task_info()) {
+        // We can extract the task working directory from the flag being
+        // passed to the command executor.
+        foreach (
+            const string& flag,
+            containers_[containerId.parent()]
+              ->launchInfo->command().arguments()) {
+          if (strings::startsWith(flag, "--working_directory=")) {
+            launchInfo.set_working_directory(
+                strings::remove(flag, "--working_directory=", strings::PREFIX));
+            break;
+          }
+        }
+      }
     }
   } else if (launchInfo.has_rootfs()) {
     if (!launchInfo.has_working_directory()) {
