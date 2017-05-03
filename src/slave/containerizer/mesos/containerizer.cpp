@@ -71,6 +71,7 @@
 #include "slave/containerizer/mesos/isolators/posix/disk.hpp"
 #include "slave/containerizer/mesos/isolators/posix/rlimits.hpp"
 #include "slave/containerizer/mesos/isolators/volume/sandbox_path.hpp"
+#include "slave/containerizer/mesos/isolators/volume/secret.hpp"
 
 #include "slave/containerizer/mesos/provisioner/provisioner.hpp"
 
@@ -220,6 +221,12 @@ Try<MesosContainerizer*> MesosContainerizer::create(
       !strings::contains(flags_.isolation, "volume/image")) {
     flags_.isolation += ",volume/image";
   }
+
+  // Always enable 'filesystem/linux' if 'volume/secret' is enabled.
+  if (strings::contains(flags_.isolation, "volume/secret") &&
+      !strings::contains(flags_.isolation, "filesystem/linux")) {
+    flags_.isolation += ",filesystem/linux";
+  }
 #endif // __linux__
 
   // Always add environment secret isolator.
@@ -336,6 +343,11 @@ Try<MesosContainerizer*> MesosContainerizer::create(
     {"volume/image",
       [&provisioner] (const Flags& flags) -> Try<Isolator*> {
         return VolumeImageIsolatorProcess::create(flags, provisioner);
+      }},
+
+    {"volume/secret",
+      [secretFetcher] (const Flags& flags) -> Try<Isolator*> {
+        return VolumeSecretIsolatorProcess::create(flags, secretFetcher);
       }},
 
     {"gpu/nvidia",
