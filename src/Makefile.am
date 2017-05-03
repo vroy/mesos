@@ -1203,6 +1203,7 @@ MESOS_LINUX_FILES =									\
   slave/containerizer/mesos/isolators/network/cni/cni.cpp				\
   slave/containerizer/mesos/isolators/network/cni/plugins/port_mapper/port_mapper.cpp	\
   slave/containerizer/mesos/isolators/volume/image.cpp					\
+  slave/containerizer/mesos/isolators/volume/secret.cpp					\
   slave/containerizer/mesos/provisioner/backends/aufs.cpp				\
   slave/containerizer/mesos/provisioner/backends/bind.cpp				\
   slave/containerizer/mesos/provisioner/backends/overlay.cpp
@@ -1249,6 +1250,7 @@ MESOS_LINUX_FILES +=									\
   slave/containerizer/mesos/isolators/network/cni/cni.hpp				\
   slave/containerizer/mesos/isolators/network/cni/plugins/port_mapper/port_mapper.hpp	\
   slave/containerizer/mesos/isolators/volume/image.hpp					\
+  slave/containerizer/mesos/isolators/volume/secret.hpp					\
   slave/containerizer/mesos/provisioner/backends/aufs.hpp				\
   slave/containerizer/mesos/provisioner/backends/bind.hpp				\
   slave/containerizer/mesos/provisioner/backends/overlay.hpp
@@ -2411,7 +2413,8 @@ mesos_tests_SOURCES +=						\
   tests/containerizer/runtime_isolator_tests.cpp		\
   tests/containerizer/sched_tests.cpp				\
   tests/containerizer/setns_test_helper.cpp			\
-  tests/containerizer/volume_image_isolator_tests.cpp
+  tests/containerizer/volume_image_isolator_tests.cpp		\
+  tests/containerizer/volume_secret_isolator_tests.cpp
 endif
 
 if WITH_NETWORK_ISOLATOR
