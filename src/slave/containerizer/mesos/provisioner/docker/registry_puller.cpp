@@ -90,7 +90,8 @@ private:
   Future<vector<string>> __pull(
       const spec::ImageReference& reference,
       const string& directory,
-      const string& backend);
+      const string& backend,
+      const Option<Secret::Value>& config = None());
 
   Future<vector<string>> ___pull(
     const spec::ImageReference& reference,
@@ -103,7 +104,8 @@ private:
     const spec::ImageReference& reference,
     const string& directory,
     const spec::v2::ImageManifest& manifest,
-    const string& backend);
+    const string& backend,
+    const Option<Secret::Value>& config = None());
 
   RegistryPullerProcess(const RegistryPullerProcess&) = delete;
   RegistryPullerProcess& operator=(const RegistryPullerProcess&) = delete;
@@ -275,7 +277,9 @@ Future<vector<string>> RegistryPullerProcess::_pull(
           : (reference.has_tag() ? reference.tag() : "latest")),
         spec::getRegistryHost(reference.registry()),
         scheme.get(),
-        port.isSome() ? port.get() : Option<int>());
+        port.isSome() ? port.get() : Option<int>(),
+        None(),
+        config.isSome() ? config->data() : Option<string>());
   } else {
     const string registry = defaultRegistryUrl.domain.isSome()
       ? defaultRegistryUrl.domain.get()
@@ -292,7 +296,9 @@ Future<vector<string>> RegistryPullerProcess::_pull(
           : (reference.has_tag() ? reference.tag() : "latest")),
         registry,
         defaultRegistryUrl.scheme,
-        port);
+        port,
+        None(),
+        config.isSome() ? config->data() : Option<string>());
   }
 
   VLOG(1) << "Pulling image '" << reference
@@ -300,14 +306,15 @@ Future<vector<string>> RegistryPullerProcess::_pull(
           << "' to '" << directory << "'";
 
   return fetcher->fetch(manifestUri, directory)
-    .then(defer(self(), &Self::__pull, reference, directory, backend));
+    .then(defer(self(), &Self::__pull, reference, directory, backend, config));
 }
 
 
 Future<vector<string>> RegistryPullerProcess::__pull(
     const spec::ImageReference& reference,
     const string& directory,
-    const string& backend)
+    const string& backend,
+    const Option<Secret::Value>& config)
 {
   Try<string> _manifest = os::read(path::join(directory, "manifest"));
   if (_manifest.isError()) {
@@ -328,7 +335,7 @@ Future<vector<string>> RegistryPullerProcess::__pull(
     return Failure("'fsLayers' and 'history' have different size in manifest");
   }
 
-  return fetchBlobs(reference, directory, manifest.get(), backend)
+  return fetchBlobs(reference, directory, manifest.get(), backend, config)
     .then(defer(self(),
                 &Self::___pull,
                 reference,
@@ -443,7 +450,8 @@ Future<hashset<string>> RegistryPullerProcess::fetchBlobs(
     const spec::ImageReference& reference,
     const string& directory,
     const spec::v2::ImageManifest& manifest,
-    const string& backend)
+    const string& backend,
+    const Option<Secret::Value>& config)
 {
   // First, find all the blobs that need to be fetched.
   //
@@ -495,7 +503,9 @@ Future<hashset<string>> RegistryPullerProcess::fetchBlobs(
           blobSum,
           spec::getRegistryHost(reference.registry()),
           scheme.get(),
-          port.isSome() ? port.get() : Option<int>());
+          port.isSome() ? port.get() : Option<int>(),
+          None(),
+          config.isSome() ? config->data() : Option<string>());
     } else {
       const string registry = defaultRegistryUrl.domain.isSome()
         ? defaultRegistryUrl.domain.get()
@@ -510,7 +520,9 @@ Future<hashset<string>> RegistryPullerProcess::fetchBlobs(
           blobSum,
           registry,
           defaultRegistryUrl.scheme,
-          port);
+          port,
+          None(),
+          config.isSome() ? config->data() : Option<string>());
     }
 
     futures.push_back(fetcher->fetch(blobUri, directory));
