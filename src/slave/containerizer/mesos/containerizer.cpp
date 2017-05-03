@@ -71,6 +71,7 @@
 #include "slave/containerizer/mesos/isolators/posix/disk.hpp"
 #include "slave/containerizer/mesos/isolators/posix/rlimits.hpp"
 #include "slave/containerizer/mesos/isolators/volume/sandbox_path.hpp"
+#include "slave/containerizer/mesos/isolators/volume/secret.hpp"
 
 #include "slave/containerizer/mesos/provisioner/provisioner.hpp"
 
@@ -219,6 +220,12 @@ Try<MesosContainerizer*> MesosContainerizer::create(
   if (strings::contains(flags_.isolation, "filesystem/linux") &&
       !strings::contains(flags_.isolation, "volume/image")) {
     flags_.isolation += ",volume/image";
+  }
+
+  // Always enable 'filesystem/linux' if 'volume/secret' is enabled.
+  if (strings::contains(flags_.isolation, "volume/secret") &&
+      !strings::contains(flags_.isolation, "filesystem/linux")) {
+    flags_.isolation += ",filesystem/linux";
   }
 #endif // __linux__
 
