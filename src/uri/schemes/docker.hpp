@@ -49,7 +49,9 @@ inline URI manifest(
     const std::string& reference, // Either tag or digest.
     const std::string& registry,
     const Option<std::string>& scheme = None(),
-    const Option<int>& port = None())
+    const Option<int>& port = None(),
+    const Option<std::string>& principal = None(),
+    const Option<std::string>& secret = None())
 {
   return construct(
       "docker-manifest",
@@ -57,7 +59,9 @@ inline URI manifest(
       registry,
       port,
       reference,
-      scheme);
+      scheme,
+      principal,
+      secret);
 }
 
 
@@ -66,7 +70,9 @@ inline URI blob(
     const std::string& digest,
     const std::string& registry,
     const Option<std::string>& scheme = None(),
-    const Option<int>& port = None())
+    const Option<int>& port = None(),
+    const Option<std::string>& principal = None(),
+    const Option<std::string>& secret = None())
 {
   return construct(
       "docker-blob",
@@ -74,7 +80,9 @@ inline URI blob(
       registry,
       port,
       digest,
-      scheme);
+      scheme,
+      principal,
+      secret);
 }
 
 } // namespace docker {
