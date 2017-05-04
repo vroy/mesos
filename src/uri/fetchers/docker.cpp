@@ -324,34 +324,40 @@ public:
 
   Future<Nothing> fetch(
       const URI& uri,
-      const string& directory);
+      const string& directory,
+      const Option<Secret::Value>& secretValue);
 
 private:
   Future<Nothing> _fetch(
       const URI& uri,
       const string& directory,
       const URI& manifestUri,
-      const http::Response& response);
+      const http::Response& response,
+      const Option<Secret::Value>& secretValue);
 
   Future<Nothing> __fetch(
       const URI& uri,
       const string& directory,
       const http::Headers& authHeaders,
-      const http::Response& response);
+      const http::Response& response,
+      const Option<Secret::Value>& secretValue);
 
   Future<Nothing> fetchBlob(
       const URI& uri,
       const string& directory,
-      const http::Headers& authHeaders);
+      const http::Headers& authHeaders,
+      const Option<Secret::Value>& secretValue);
 
   Future<Nothing> _fetchBlob(
       const URI& uri,
       const string& directory,
-      const URI& blobUri);
+      const URI& blobUri,
+      const Option<Secret::Value>& secretValue);
 
   Future<http::Headers> getAuthHeader(
       const URI& uri,
-      const http::Response& response);
+      const http::Response& response,
+      const Option<Secret::Value>& secretValue);
 
   URI getManifestUri(const URI& uri);
   URI getBlobUri(const URI& uri);
@@ -434,13 +440,15 @@ Future<Nothing> DockerFetcherPlugin::fetch(
       process.get(),
       &DockerFetcherPluginProcess::fetch,
       uri,
-      directory);
+      directory,
+      secretValue);
 }
 
 
 Future<Nothing> DockerFetcherPluginProcess::fetch(
     const URI& uri,
-    const string& directory)
+    const string& directory,
+    const Option<Secret::Value>& secretValue)
 {
   // TODO(gilbert): Convert the `uri` to ::docker::spec::ImageReference
   // and pass it all the way down to avoid the complicated URI conversion
@@ -467,7 +475,7 @@ Future<Nothing> DockerFetcherPluginProcess::fetch(
   }
 
   if (uri.scheme() == "docker-blob") {
-    return fetchBlob(uri, directory, http::Headers());
+    return fetchBlob(uri, directory, http::Headers(), secretValue);
   }
 
   URI manifestUri = getManifestUri(uri);
@@ -478,7 +486,8 @@ Future<Nothing> DockerFetcherPluginProcess::fetch(
                 uri,
                 directory,
                 manifestUri,
-                lambda::_1));
+                lambda::_1,
+                secretValue));
 }
 
 
@@ -486,10 +495,11 @@ Future<Nothing> DockerFetcherPluginProcess::_fetch(
     const URI& uri,
     const string& directory,
     const URI& manifestUri,
-    const http::Response& response)
+    const http::Response& response,
+    const Option<Secret::Value>& secretValue)
 {
   if (response.code == http::Status::UNAUTHORIZED) {
-    return getAuthHeader(manifestUri, response)
+    return getAuthHeader(manifestUri, response, secretValue)
       .then(defer(self(), [=](
           const http::Headers& authHeaders) -> Future<Nothing> {
         return curl(manifestUri, authHeaders)
@@ -498,11 +508,12 @@ Future<Nothing> DockerFetcherPluginProcess::_fetch(
                       uri,
                       directory,
                       authHeaders,
-                      lambda::_1));
+                      lambda::_1,
+                      secretValue));
       }));
   }
 
-  return __fetch(uri, directory, http::Headers(), response);
+  return __fetch(uri, directory, http::Headers(), response, secretValue);
 }
 
 
@@ -510,7 +521,8 @@ Future<Nothing> DockerFetcherPluginProcess::__fetch(
     const URI& uri,
     const string& directory,
     const http::Headers& authHeaders,
-    const http::Response& response)
+    const http::Response& response,
+    const Option<Secret::Value>& secretValue)
 {
   if (response.code != http::Status::OK) {
     return Failure(
@@ -584,7 +596,8 @@ Future<Nothing> DockerFetcherPluginProcess::__fetch(
     futures.push_back(fetchBlob(
         blob,
         directory,
-        authHeaders));
+        authHeaders,
+        secretValue));
   }
 
   return collect(futures)
@@ -595,7 +608,8 @@ Future<Nothing> DockerFetcherPluginProcess::__fetch(
 Future<Nothing> DockerFetcherPluginProcess::fetchBlob(
     const URI& uri,
     const string& directory,
-    const http::Headers& authHeaders)
+    const http::Headers& authHeaders,
+    const Option<Secret::Value>& secretValue)
 {
   URI blobUri = getBlobUri(uri);
 
@@ -609,7 +623,7 @@ Future<Nothing> DockerFetcherPluginProcess::fetchBlob(
       // '401 Unauthorized' response, we return a Failure. This can
       // prevent us from entering an infinite loop.
       if (code == http::Status::UNAUTHORIZED && authHeaders.empty()) {
-        return _fetchBlob(uri, directory, blobUri);
+        return _fetchBlob(uri, directory, blobUri, secretValue);
       }
 
       return Failure(
@@ -622,7 +636,8 @@ Future<Nothing> DockerFetcherPluginProcess::fetchBlob(
 Future<Nothing> DockerFetcherPluginProcess::_fetchBlob(
     const URI& uri,
     const string& directory,
-    const URI& blobUri)
+    const URI& blobUri,
+    const Option<Secret::Value>& secretValue)
 {
   // TODO(jieyu): This extra 'curl' call can be avoided if we can get
   // HTTP headers from 'download'. Currently, 'download' only returns
@@ -638,12 +653,13 @@ Future<Nothing> DockerFetcherPluginProcess::_fetchBlob(
           "but get '" + response.status + "' instead");
       }
 
-      return getAuthHeader(blobUri, response)
+      return getAuthHeader(blobUri, response, secretValue)
         .then(defer(self(),
                     &Self::fetchBlob,
                     uri,
                     directory,
-                    lambda::_1));
+                    lambda::_1,
+                    secretValue));
     }));
 }
 
@@ -679,7 +695,8 @@ static http::Headers getAuthHeaderBearer(
 
 Future<http::Headers> DockerFetcherPluginProcess::getAuthHeader(
     const URI& uri,
-    const http::Response& response)
+    const http::Response& response,
+    const Option<Secret::Value>& secretValue)
 {
   Result<http::header::WWWAuthenticate> header =
     response.headers.get<http::header::WWWAuthenticate>();
@@ -690,6 +707,23 @@ Future<http::Headers> DockerFetcherPluginProcess::getAuthHeader(
   } else if (header.isNone()) {
     return Failure("Unexpected empty WWW-Authenticate header");
   }
+
+  hashmap<string, spec::Config::Auth> _auths;
+
+  // The secret value is expected as a docker config in JSON format.
+  if (secretValue.isSome()) {
+    Try<hashmap<string, spec::Config::Auth>> secretAuths =
+      spec::parseAuthConfig(secretValue->data());
+
+    if (secretAuths.isError()) {
+      return Failure("Failed to parse docker config: " + secretAuths.error());
+    }
+
+    _auths = secretAuths.get();
+  }
+
+  // The 'secretAuths' takes the precedence over the default auths.
+  _auths.insert(auths.begin(), auths.end());
 
   // According to RFC, auth scheme should be case insensitive.
   const string authScheme = strings::upper(header->authScheme());
@@ -702,7 +736,7 @@ Future<http::Headers> DockerFetcherPluginProcess::getAuthHeader(
       : uri.host();
 
     Option<string> auth;
-    foreachpair (const string& key, const spec::Config::Auth& value, auths) {
+    foreachpair (const string& key, const spec::Config::Auth& value, _auths) {
       if (registry == spec::parseAuthUrl(key) && value.has_auth()) {
         auth = value.auth();
         break;
@@ -766,7 +800,7 @@ Future<http::Headers> DockerFetcherPluginProcess::getAuthHeader(
     // The step 3 ~ 6 are exactly what this TODO describes.
     Option<string> auth;
 
-    foreachpair (const string& key, const spec::Config::Auth& value, auths) {
+    foreachpair (const string& key, const spec::Config::Auth& value, _auths) {
       // Handle domains including 'docker.io' as a special case,
       // because the url is set differently for different version
       // of docker default registry, but all of them should depend
