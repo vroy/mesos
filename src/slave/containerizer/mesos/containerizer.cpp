@@ -1273,6 +1273,10 @@ Future<bool> MesosContainerizerProcess::_launch(
 
   ContainerLaunchInfo launchInfo;
 
+  // TODO(tillt): Remove this once we no longer support the old style
+  // command task (i.e., that uses mesos-execute).
+  hashmap<string, string> commandTaskEnvironment;
+
   foreach (const Option<ContainerLaunchInfo>& isolatorLaunchInfo,
            container->launchInfos.get()) {
     if (isolatorLaunchInfo.isNone()) {
@@ -1319,8 +1323,25 @@ Future<bool> MesosContainerizerProcess::_launch(
       return Failure("Multiple isolators specify tty");
     }
 
+    if (isolatorLaunchInfo->has_task_environment()) {
+      foreach (const Environment::Variable& variable,
+               isolatorLaunchInfo->task_environment().variables()) {
+        const string& name = variable.name();
+        const string& value = variable.value();
+        if (commandTaskEnvironment.contains(name) &&
+            commandTaskEnvironment[name] != value) {
+          LOG(WARNING) << "Overwriting environment variable '" << name << "'";
+        }
+        // TODO(tillt): Consider making this 'secret' aware.
+        commandTaskEnvironment[name] = value;
+      }
+    }
+
     launchInfo.MergeFrom(isolatorLaunchInfo.get());
   }
+
+  // Ignore merged `task_environment` as it got separately accumulated
+  // by `commandTaskEnvironment`.
 
   // Remove duplicated entries in enter and clone namespaces.
   set<int> enterNamespaces(
@@ -1345,6 +1366,15 @@ Future<bool> MesosContainerizerProcess::_launch(
   // Determine the launch command for the container.
   if (!launchInfo.has_command()) {
     launchInfo.mutable_command()->CopyFrom(container->config.command_info());
+  }
+
+  // For the command executor case, we should add the task_environment
+  // flag to the launch command of the command executor.
+  // TODO(tillt): Remove this once we no longer support the old style
+  // command task (i.e., that uses mesos-execute).
+  if (container->config.has_task_info() && !commandTaskEnvironment.empty()) {
+    launchInfo.mutable_command()->add_arguments(
+        "--task_environment=" + string(jsonify(commandTaskEnvironment)));
   }
 
   // For the command executor case, we should add the rootfs flag to
