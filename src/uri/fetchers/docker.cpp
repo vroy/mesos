@@ -688,6 +688,24 @@ Future<http::Headers> DockerFetcherPluginProcess::getAuthHeader(
     return Failure("Unexpected empty WWW-Authenticate header");
   }
 
+  hashmap<string, spec::Config::Auth> _auths;
+
+  // The 'password' field in the URI is the secret content refered
+  // by Image::Secret, expected as a docker config in JSON format.
+  if (uri.has_password()) {
+    Try<hashmap<string, spec::Config::Auth>> secretAuths =
+      spec::parseAuthConfig(uri.password());
+
+    if (secretAuths.isError()) {
+      return Failure("Failed to parse docker config: " + secretAuths.error());
+    }
+
+    _auths = secretAuths.get();
+  }
+
+  // The 'secretAuths' takes the precedence over the default auths.
+  _auths.insert(auths.begin(), auths.end());
+
   // According to RFC, auth scheme should be case insensitive.
   const string authScheme = strings::upper(header->authScheme());
 
@@ -699,7 +717,7 @@ Future<http::Headers> DockerFetcherPluginProcess::getAuthHeader(
       : uri.host();
 
     Option<string> auth;
-    foreachpair (const string& key, const spec::Config::Auth& value, auths) {
+    foreachpair (const string& key, const spec::Config::Auth& value, _auths) {
       if (registry == spec::parseAuthUrl(key) && value.has_auth()) {
         auth = value.auth();
         break;
@@ -763,7 +781,7 @@ Future<http::Headers> DockerFetcherPluginProcess::getAuthHeader(
     // The step 3 ~ 6 are exactly what this TODO describes.
     Option<string> auth;
 
-    foreachpair (const string& key, const spec::Config::Auth& value, auths) {
+    foreachpair (const string& key, const spec::Config::Auth& value, _auths) {
       // Handle domains including 'docker.io' as a special case,
       // because the url is set differently for different version
       // of docker default registry, but all of them should depend
@@ -837,7 +855,11 @@ URI DockerFetcherPluginProcess::getManifestUri(const URI& uri)
       scheme,
       path::join("/v2", uri.path(), "manifests", uri.query()),
       uri.host(),
-      (uri.has_port() ? Option<int>(uri.port()) : None()));
+      (uri.has_port() ? Option<int>(uri.port()) : None()),
+      None(),
+      None(),
+      None(),
+      (uri.has_password() ? Option<string>(uri.password()) : None()));
 }
 
 
@@ -852,7 +874,11 @@ URI DockerFetcherPluginProcess::getBlobUri(const URI& uri)
       scheme,
       path::join("/v2", uri.path(), "blobs", uri.query()),
       uri.host(),
-      (uri.has_port() ? Option<int>(uri.port()) : None()));
+      (uri.has_port() ? Option<int>(uri.port()) : None()),
+      None(),
+      None(),
+      None(),
+      (uri.has_password() ? Option<string>(uri.password()) : None()));
 }
 
 } // namespace uri {
