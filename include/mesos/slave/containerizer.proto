@@ -161,6 +161,10 @@ message ContainerLaunchInfo {
   // The additional preparation commands to execute before
   // executing the command.
   repeated CommandInfo pre_exec_commands = 1;
+
+  // Additional environment to set before executing the command.
+  // Note that this is effective for the executor already which
+  // may then decide to inherit this towards the task.
   optional Environment environment = 2;
 
   // (Linux only) The root filesystem for the container.
@@ -181,6 +185,11 @@ message ContainerLaunchInfo {
   // executor, or the launch command for the user task in the case of
   // a command task.
   optional CommandInfo command = 5;
+
+  // The environment specifically for the task command.
+  // Note that for task commands, this will not affect the command
+  // executor.
+  optional Environment task_environment = 15;
 
   // The working directory for the container.
   // NOTE: This is different than Mesos sandbox.
