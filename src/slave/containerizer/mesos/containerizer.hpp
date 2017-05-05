@@ -135,7 +135,6 @@ public:
   MesosContainerizerProcess(
       const Flags& _flags,
       Fetcher* _fetcher,
-      SecretResolver* _secretResolver,
       IOSwitchboard* _ioSwitchboard,
       const process::Owned<Launcher>& _launcher,
       const process::Shared<Provisioner>& _provisioner,
