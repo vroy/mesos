@@ -469,7 +469,6 @@ Try<MesosContainerizer*> MesosContainerizer::create(
       new MesosContainerizerProcess(
           flags,
           fetcher,
-          secretResolver,
           ioSwitchboard.get(),
           launcher,
           provisioner,

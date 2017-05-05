@@ -135,7 +135,6 @@ public:
   MesosContainerizerProcess(
       const Flags& _flags,
       Fetcher* _fetcher,
-      SecretResolver* _secretResolver,
       IOSwitchboard* _ioSwitchboard,
       const process::Owned<Launcher>& _launcher,
       const process::Shared<Provisioner>& _provisioner,
@@ -143,7 +142,6 @@ public:
     : ProcessBase(process::ID::generate("mesos-containerizer")),
       flags(_flags),
       fetcher(_fetcher),
-      secretResolver(_secretResolver),
       ioSwitchboard(_ioSwitchboard),
       launcher(_launcher),
       provisioner(_provisioner),
@@ -305,7 +303,6 @@ private:
 
   const Flags flags;
   Fetcher* fetcher;
-  SecretResolver* secretResolver;
   IOSwitchboard* ioSwitchboard;
   const process::Owned<Launcher> launcher;
   const process::Shared<Provisioner> provisioner;
