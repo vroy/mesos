@@ -22,6 +22,8 @@
 #include <mesos/executor.hpp>
 #include <mesos/scheduler.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <process/clock.hpp>
 #include <process/future.hpp>
 #include <process/gmock.hpp>
@@ -31,7 +33,6 @@
 
 #include <stout/option.hpp>
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "tests/allocator.hpp"

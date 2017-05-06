@@ -21,6 +21,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/scheduler.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/scheduler/scheduler.hpp>
 
 #include <process/clock.hpp>
@@ -34,7 +36,6 @@
 
 #include "common/protobuf_utils.hpp"
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "master/detector/standalone.hpp"

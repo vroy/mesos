@@ -21,6 +21,8 @@
 #include <mesos/executor.hpp>
 #include <mesos/scheduler.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/gmock.hpp>
 #include <process/http.hpp>
@@ -29,7 +31,6 @@
 
 #include <stout/option.hpp>
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "master/detector/standalone.hpp"

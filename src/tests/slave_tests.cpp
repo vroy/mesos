@@ -31,6 +31,7 @@
 
 #include <mesos/authentication/http/basic_authenticator_factory.hpp>
 
+#include <mesos/master/flags.hpp>
 
 #include <process/clock.hpp>
 #include <process/future.hpp>
@@ -59,7 +60,6 @@
 #include "common/http.hpp"
 #include "common/protobuf_utils.hpp"
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "master/detector/standalone.hpp"

@@ -28,6 +28,8 @@
 
 #include <mesos/allocator/allocator.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/slave/resource_estimator.hpp>
 
 #include <mesos/state/in_memory.hpp>
@@ -69,7 +71,6 @@
 #include "files/files.hpp"
 
 #include "master/constants.hpp"
-#include "master/flags.hpp"
 #include "master/master.hpp"
 #include "master/registrar.hpp"
 

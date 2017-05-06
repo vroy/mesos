@@ -156,7 +156,7 @@ public:
         "or 'external', or load an alternate isolator module using\n"
         "the --modules flag.");
 
-    // This help message is duplicated from master/flags.hpp and
+    // This help message is duplicated from include/mesos/master/flags.hpp and
     // should always be kept in sync with that.
     add(&Flags::authenticators,
         "authenticators",

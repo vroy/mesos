@@ -18,6 +18,8 @@
 
 #include <gmock/gmock.h>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/state/state.hpp>
 
 #include <process/future.hpp>
@@ -26,7 +28,6 @@
 #include <stout/none.hpp>
 #include <stout/option.hpp>
 
-#include "master/flags.hpp"
 #include "master/registrar.hpp"
 
 #include "tests/mock_registrar.hpp"

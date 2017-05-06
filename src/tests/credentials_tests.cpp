@@ -18,11 +18,12 @@
 
 #include <gmock/gmock.h>
 
+#include <mesos/master/flags.hpp>
+
 #include <process/gmock.hpp>
 #include <process/owned.hpp>
 #include <process/pid.hpp>
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 #include "tests/mesos.hpp"
 #include "tests/utils.hpp"

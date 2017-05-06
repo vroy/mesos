@@ -16,6 +16,8 @@
 
 #include <mesos/module.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/slave/container_logger.hpp>
 
 #include <process/clock.hpp>
@@ -32,7 +34,6 @@
 
 #include "hook/manager.hpp"
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "messages/messages.hpp"

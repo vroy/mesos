@@ -23,6 +23,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/resources.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <process/clock.hpp>
 #include <process/gmock.hpp>
 #include <process/gtest.hpp>
@@ -41,7 +43,6 @@
 #endif // __linux__
 
 #include "master/constants.hpp"
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "master/detector/standalone.hpp"

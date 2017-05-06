@@ -14,26 +14,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef __MASTER_FLAGS_HPP__
-#define __MASTER_FLAGS_HPP__
+#ifndef __MESOS_MASTER_FLAGS_HPP__
+#define __MESOS_MASTER_FLAGS_HPP__
 
 #include <cstdint>
 
 #include <string>
 
-#include <stout/duration.hpp>
-#include <stout/option.hpp>
-#include <stout/path.hpp>
-
 #include <mesos/mesos.hpp>
 
 #include <mesos/authorizer/acls.hpp>
-
 #include <mesos/firewall/firewall.hpp>
-
 #include <mesos/logging/flags.hpp>
-
 #include <mesos/module/module.hpp>
+
+#include <stout/duration.hpp>
+#include <stout/option.hpp>
+#include <stout/path.hpp>
 
 namespace mesos {
 namespace internal {
@@ -119,4 +116,4 @@ public:
 } // namespace internal {
 } // namespace mesos {
 
-#endif // __MASTER_FLAGS_HPP__
+#endif // __MESOS_MASTER_FLAGS_HPP__

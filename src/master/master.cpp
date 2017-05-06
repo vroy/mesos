@@ -35,6 +35,7 @@
 #include <mesos/allocator/allocator.hpp>
 #include <mesos/master/contender.hpp>
 #include <mesos/master/detector.hpp>
+#include <mesos/master/flags.hpp>
 
 #include <mesos/logging/flags.hpp>
 
@@ -85,7 +86,6 @@
 
 #include "logging/logging.hpp"
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 #include "master/weights.hpp"
 

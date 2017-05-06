@@ -21,6 +21,8 @@
 
 #include <mesos/mesos.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/http.hpp>
 #include <process/id.hpp>
@@ -31,7 +33,6 @@
 #include <stout/protobuf.hpp>
 #include <stout/strings.hpp>
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "slave/slave.hpp"

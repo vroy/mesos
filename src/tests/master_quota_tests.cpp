@@ -23,6 +23,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/resources.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/quota/quota.hpp>
 
 #include <process/future.hpp>
@@ -35,7 +37,6 @@
 #include <stout/stringify.hpp>
 #include <stout/strings.hpp>
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "slave/slave.hpp"

@@ -25,6 +25,8 @@
 #include <mesos/executor.hpp>
 #include <mesos/scheduler.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <process/check.hpp>
 #include <process/clock.hpp>
 #include <process/collect.hpp>
@@ -43,7 +45,6 @@
 #include <stout/path.hpp>
 #include <stout/try.hpp>
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "slave/constants.hpp"

@@ -17,12 +17,13 @@
 
 #include <mesos/type_utils.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <stout/flags.hpp>
 
 #include "common/http.hpp"
 #include "common/parse.hpp"
 #include "master/constants.hpp"
-#include "master/flags.hpp"
 
 using std::string;
 

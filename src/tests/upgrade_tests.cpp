@@ -27,6 +27,8 @@
 
 #include <mesos/allocator/allocator.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/scheduler/scheduler.hpp>
 
 #include <process/clock.hpp>
@@ -40,7 +42,6 @@
 #include <stout/option.hpp>
 #include <stout/try.hpp>
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "master/detector/standalone.hpp"

@@ -18,6 +18,8 @@
 
 #include <gmock/gmock.h>
 
+#include <mesos/master/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/gmock.hpp>
 #include <process/message.hpp>
@@ -26,7 +28,6 @@
 #include <stout/option.hpp>
 #include <stout/try.hpp>
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "tests/containerizer.hpp"

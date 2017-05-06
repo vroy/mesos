@@ -19,6 +19,8 @@
 
 #include <mesos/mesos.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/state/state.hpp>
 
 #include <process/future.hpp>
@@ -27,7 +29,6 @@
 
 #include <stout/hashset.hpp>
 
-#include "master/flags.hpp"
 #include "master/registry.hpp"
 
 namespace mesos {

@@ -652,6 +652,7 @@ masterdir = $(pkgincludedir)/master
 master_HEADERS =							\
   $(top_srcdir)/include/mesos/master/contender.hpp			\
   $(top_srcdir)/include/mesos/master/detector.hpp			\
+  $(top_srcdir)/include/mesos/master/flags.hpp				\
   $(top_srcdir)/include/mesos/master/master.hpp				\
   $(top_srcdir)/include/mesos/master/master.proto
 
@@ -1042,7 +1043,6 @@ libmesos_no_3rdparty_la_SOURCES +=					\
   local/local.hpp							\
   logging/logging.hpp							\
   master/constants.hpp							\
-  master/flags.hpp							\
   master/machine.hpp							\
   master/maintenance.hpp						\
   master/master.hpp							\

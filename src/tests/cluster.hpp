@@ -22,13 +22,15 @@
 
 #include <mesos/mesos.hpp>
 
+#include <mesos/allocator/allocator.hpp>
+
 #include <mesos/authorizer/authorizer.hpp>
 
 #include <mesos/log/log.hpp>
 
-#include <mesos/allocator/allocator.hpp>
 #include <mesos/master/contender.hpp>
 #include <mesos/master/detector.hpp>
+#include <mesos/master/flags.hpp>
 
 #include <mesos/slave/resource_estimator.hpp>
 
@@ -51,7 +53,6 @@
 #include "files/files.hpp"
 
 #include "master/constants.hpp"
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "slave/constants.hpp"

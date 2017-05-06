@@ -18,6 +18,8 @@
 
 #include <mesos/allocator/allocator.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/scheduler/scheduler.hpp>
 
 #include <process/clock.hpp>
@@ -28,7 +30,6 @@
 
 #include <process/metrics/metrics.hpp>
 
-#include "master/flags.hpp"
 #include "master/master.hpp"
 
 #include "master/allocator/mesos/allocator.hpp"

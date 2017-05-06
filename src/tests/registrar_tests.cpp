@@ -28,6 +28,8 @@
 
 #include <mesos/log/log.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/state/log.hpp>
 #include <mesos/state/state.hpp>
 #include <mesos/state/storage.hpp>
@@ -50,7 +52,6 @@
 
 #include "log/tool/initialize.hpp"
 
-#include "master/flags.hpp"
 #include "master/maintenance.hpp"
 #include "master/master.hpp"
 #include "master/quota.hpp"

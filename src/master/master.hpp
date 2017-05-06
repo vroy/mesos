@@ -36,6 +36,7 @@
 #include <mesos/allocator/allocator.hpp>
 #include <mesos/master/contender.hpp>
 #include <mesos/master/detector.hpp>
+#include <mesos/master/flags.hpp>
 #include <mesos/master/master.hpp>
 
 #include <mesos/module/authenticator.hpp>
@@ -76,7 +77,6 @@
 #include "internal/evolve.hpp"
 
 #include "master/constants.hpp"
-#include "master/flags.hpp"
 #include "master/machine.hpp"
 #include "master/metrics.hpp"
 #include "master/registrar.hpp"

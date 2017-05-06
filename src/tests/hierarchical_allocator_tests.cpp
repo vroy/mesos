@@ -25,6 +25,8 @@
 
 #include <mesos/allocator/allocator.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <process/clock.hpp>
 #include <process/future.hpp>
 #include <process/gtest.hpp>
@@ -41,7 +43,6 @@
 #include <stout/utils.hpp>
 
 #include "master/constants.hpp"
-#include "master/flags.hpp"
 
 #include "master/allocator/mesos/hierarchical.hpp"
 
