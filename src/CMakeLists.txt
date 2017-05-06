@@ -31,6 +31,7 @@ PROTOC_TO_INCLUDE_DIR(DOCKER_V1             mesos/docker/v1)
 PROTOC_TO_INCLUDE_DIR(DOCKER_V2             mesos/docker/v2)
 PROTOC_TO_INCLUDE_DIR(EXECUTOR              mesos/executor/executor)
 PROTOC_TO_INCLUDE_DIR(FETCHER               mesos/fetcher/fetcher)
+PROTOC_TO_INCLUDE_DIR(FIREWALL              mesos/firewall/firewall)
 PROTOC_TO_INCLUDE_DIR(HOOK                  mesos/module/hook)
 PROTOC_TO_INCLUDE_DIR(MAINTENANCE           mesos/maintenance/maintenance)
 PROTOC_TO_INCLUDE_DIR(MASTER                mesos/master/master)
@@ -53,7 +54,6 @@ PROTOC_TO_INCLUDE_DIR(V1_QUOTA              mesos/v1/quota/quota)
 PROTOC_TO_INCLUDE_DIR(V1_RESOURCE_PROVIDER  mesos/v1/resource_provider/resource_provider)
 PROTOC_TO_INCLUDE_DIR(V1_SCHEDULER          mesos/v1/scheduler/scheduler)
 
-PROTOC_TO_SRC_DIR(INTERNAL_FLAGS                messages/flags)
 PROTOC_TO_SRC_DIR(INTERNAL_LOG                  messages/log)
 PROTOC_TO_SRC_DIR(INTERNAL_MESSAGES             messages/messages)
 PROTOC_TO_SRC_DIR(INTERNAL_STATE                messages/state)
@@ -75,6 +75,7 @@ set(PUBLIC_PROTOBUF_SRC
   ${DOCKER_V2_PROTO_CC}
   ${EXECUTOR_PROTO_CC}
   ${FETCHER_PROTO_CC}
+  ${FIREWALL_PROTO_CC}
   ${HOOK_PROTO_CC}
   ${MAINTENANCE_PROTO_CC}
   ${MASTER_PROTO_CC}
@@ -99,7 +100,6 @@ set(PUBLIC_PROTOBUF_SRC
   )
 
 set(INTERNAL_PROTOBUF_SRC
-  ${INTERNAL_FLAGS_PROTO_CC}
   ${INTERNAL_LOG_PROTO_CC}
   ${INTERNAL_MESSAGES_PROTO_CC}
   ${INTERNAL_STATE_PROTO_CC}

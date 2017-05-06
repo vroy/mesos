@@ -14,11 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef __MESSAGES_FLAGS_HPP__
-#define __MESSAGES_FLAGS_HPP__
+#ifndef __MESOS_FIREWALL_FIREWALL_HPP__
+#define __MESOS_FIREWALL_FIREWALL_HPP__
 
 #include <string>
 #include <ostream>
+
+#include <mesos/firewall/firewall.pb.h>
 
 #include <stout/error.hpp>
 #include <stout/json.hpp>
@@ -26,10 +28,6 @@
 #include <stout/try.hpp>
 
 #include <stout/flags/parse.hpp>
-
-#include "common/parse.hpp"
-
-#include "messages/flags.pb.h"
 
 namespace flags {
 
@@ -60,4 +58,4 @@ inline std::ostream& operator<<(
 } // namespace internal {
 } // namespace mesos {
 
-#endif // __MESSAGES_FLAGS_HPP__
+#endif // __MESOS_FIREWALL_FIREWALL_HPP__

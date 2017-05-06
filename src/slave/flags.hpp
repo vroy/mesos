@@ -20,6 +20,10 @@
 #include <cstdint>
 #include <string>
 
+#include <mesos/authorizer/acls.hpp>
+
+#include <mesos/firewall/firewall.hpp>
+
 #include <mesos/logging/flags.hpp>
 
 #include <mesos/module/module.hpp>
@@ -29,8 +33,6 @@
 #include <stout/json.hpp>
 #include <stout/option.hpp>
 #include <stout/path.hpp>
-
-#include "messages/flags.hpp"
 
 namespace mesos {
 namespace internal {

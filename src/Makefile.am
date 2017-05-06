@@ -235,6 +235,7 @@ DOCKER_V1_PROTO = $(top_srcdir)/include/mesos/docker/v1.proto
 DOCKER_V2_PROTO = $(top_srcdir)/include/mesos/docker/v2.proto
 EXECUTOR_PROTO = $(top_srcdir)/include/mesos/executor/executor.proto
 FETCHER_PROTO = $(top_srcdir)/include/mesos/fetcher/fetcher.proto
+FIREWALL_PROTO = $(top_srcdir)/include/mesos/firewall/firewall.proto
 HOOK_PROTO = $(top_srcdir)/include/mesos/module/hook.proto
 MAINTENANCE_PROTO = $(top_srcdir)/include/mesos/maintenance/maintenance.proto
 MASTER_PROTO = $(top_srcdir)/include/mesos/master/master.proto
@@ -283,6 +284,8 @@ CXX_PROTOS =								\
   ../include/mesos/executor/executor.pb.h				\
   ../include/mesos/fetcher/fetcher.pb.cc				\
   ../include/mesos/fetcher/fetcher.pb.h					\
+  ../include/mesos/firewall/firewall.pb.cc				\
+  ../include/mesos/firewall/firewall.pb.h					\
   ../include/mesos/maintenance/maintenance.pb.cc			\
   ../include/mesos/maintenance/maintenance.pb.h				\
   ../include/mesos/master/master.pb.cc					\
@@ -329,8 +332,6 @@ CXX_PROTOS =								\
 CXX_PROTOS +=								\
   master/registry.pb.cc							\
   master/registry.pb.h							\
-  messages/flags.pb.cc							\
-  messages/flags.pb.h							\
   messages/messages.pb.cc						\
   messages/messages.pb.h						\
   slave/containerizer/mesos/provisioner/docker/message.pb.cc		\
@@ -618,6 +619,15 @@ fetcher_HEADERS =							\
 nodist_fetcher_HEADERS =						\
   ../include/mesos/fetcher/fetcher.pb.h
 
+firewalldir = $(pkgincludedir)/firewall
+
+firewall_HEADERS =							\
+  $(top_srcdir)/include/mesos/firewall/firewall.hpp			\
+  $(top_srcdir)/include/mesos/firewall/firewall.proto
+
+nodist_firewall_HEADERS =						\
+  ../include/mesos/firewall/firewall.pb.h
+
 logdir = $(pkgincludedir)/log
 
 log_HEADERS =								\
@@ -859,7 +869,6 @@ nodist_libmesos_no_3rdparty_la_SOURCES = $(CXX_PROTOS)
 
 libmesos_no_3rdparty_la_SOURCES =					\
   master/registry.proto							\
-  messages/flags.proto							\
   messages/messages.proto						\
   slave/containerizer/mesos/provisioner/docker/message.proto		\
   slave/containerizer/mesos/isolators/docker/volume/state.proto		\
@@ -1053,7 +1062,6 @@ libmesos_no_3rdparty_la_SOURCES +=					\
   master/contender/zookeeper.hpp					\
   master/detector/standalone.hpp					\
   master/detector/zookeeper.hpp						\
-  messages/flags.hpp							\
   messages/messages.hpp							\
   module/manager.hpp							\
   posix/rlimits.hpp							\
@@ -1429,6 +1437,7 @@ libmesos_la_SOURCES =							\
   $(DOCKER_V1_PROTO)							\
   $(DOCKER_V2_PROTO)							\
   $(FETCHER_PROTO)							\
+  $(FIREWALL_PROTO)							\
   $(HOOK_PROTO)								\
   $(MAINTENANCE_PROTO)							\
   $(MASTER_PROTO)							\

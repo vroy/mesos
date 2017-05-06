@@ -22,6 +22,8 @@
 
 #include <mesos/authorizer/authorizer.hpp>
 
+#include <mesos/firewall/firewall.hpp>
+
 #include <mesos/master/detector.hpp>
 
 #include <mesos/mesos.hpp>
@@ -59,7 +61,6 @@
 
 #include "logging/logging.hpp"
 
-#include "messages/flags.hpp"
 #include "messages/messages.hpp"
 
 #include "module/manager.hpp"
