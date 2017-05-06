@@ -29,9 +29,9 @@
 
 #include <mesos/authorizer/acls.hpp>
 
-#include <mesos/module/module.hpp>
+#include <mesos/logging/flags.hpp>
 
-#include "logging/flags.hpp"
+#include <mesos/module/module.hpp>
 
 #include "messages/flags.hpp"
 

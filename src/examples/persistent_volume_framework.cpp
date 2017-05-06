@@ -28,6 +28,8 @@
 
 #include <mesos/authorizer/acls.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <stout/flags.hpp>
 #include <stout/hashset.hpp>
 #include <stout/json.hpp>
@@ -39,7 +41,6 @@
 
 #include "common/status_utils.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 using namespace mesos;

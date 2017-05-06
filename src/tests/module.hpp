@@ -19,11 +19,12 @@
 
 #include <string>
 
+#include <mesos/logging/flags.hpp>
+
 #include <mesos/module/module.hpp>
 
 #include <stout/try.hpp>
 
-#include "logging/flags.hpp"
 #include "messages/messages.hpp"
 #include "module/manager.hpp"
 

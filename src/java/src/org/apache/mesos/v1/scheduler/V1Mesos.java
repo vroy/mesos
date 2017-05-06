@@ -37,7 +37,7 @@ import org.apache.mesos.v1.scheduler.Protos.Call;
  * Note that the scheduler library uses GLOG to do its own logging. GLOG flags
  * can be set via environment variables, prefixing the flag name with
  * "GLOG_", e.g., "GLOG_v=1". For Mesos specific logging flags see
- * src/logging/flags.hpp. Mesos flags can also be set via environment
+ * include/mesos/logging/flags.hpp. Mesos flags can also be set via environment
  * variables, prefixing the flag name with "MESOS_", e.g., "MESOS_QUIET=1".
  * <p>
  * See src/examples/java/V1TestFramework.java for an example of using this.

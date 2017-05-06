@@ -20,15 +20,15 @@
 #include <cstdint>
 #include <string>
 
+#include <mesos/logging/flags.hpp>
+
+#include <mesos/module/module.hpp>
+
 #include <stout/bytes.hpp>
 #include <stout/duration.hpp>
 #include <stout/json.hpp>
 #include <stout/option.hpp>
 #include <stout/path.hpp>
-
-#include <mesos/module/module.hpp>
-
-#include "logging/flags.hpp"
 
 #include "messages/flags.hpp"
 

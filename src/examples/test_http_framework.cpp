@@ -20,6 +20,8 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <mesos/v1/mesos.hpp>
 #include <mesos/v1/resources.hpp>
 #include <mesos/v1/scheduler.hpp>
@@ -45,7 +47,6 @@
 
 #include "common/status_utils.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 using namespace mesos::v1;

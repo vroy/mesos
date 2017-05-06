@@ -21,6 +21,8 @@
 #include <mesos/scheduler.hpp>
 #include <mesos/type_utils.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <stout/exit.hpp>
 #include <stout/flags.hpp>
 #include <stout/foreach.hpp>
@@ -32,7 +34,6 @@
 #include "common/protobuf_utils.hpp"
 #include "common/status_utils.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 using namespace mesos;

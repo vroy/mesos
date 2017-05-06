@@ -17,13 +17,13 @@
 #ifndef __LOG_TOOL_INITIALIZE_HPP__
 #define __LOG_TOOL_INITIALIZE_HPP__
 
+#include <mesos/logging/flags.hpp>
+
 #include <stout/duration.hpp>
 #include <stout/flags.hpp>
 #include <stout/option.hpp>
 
 #include "log/tool.hpp"
-
-#include "logging/flags.hpp"
 
 namespace mesos {
 namespace internal {

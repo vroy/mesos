@@ -22,6 +22,8 @@
 #include <mesos/executor.hpp>
 #include <mesos/mesos.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <process/id.hpp>
 #include <process/owned.hpp>
 #include <process/process.hpp>
@@ -47,7 +49,6 @@
 #include "docker/docker.hpp"
 #include "docker/executor.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 #include "messages/messages.hpp"

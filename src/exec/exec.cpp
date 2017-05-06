@@ -27,6 +27,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/type_utils.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <process/delay.hpp>
 #include <process/dispatch.hpp>
 #include <process/id.hpp>
@@ -47,7 +49,6 @@
 
 #include "common/protobuf_utils.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 #include "messages/messages.hpp"

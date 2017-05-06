@@ -19,6 +19,8 @@
 
 #include <mesos/scheduler.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <process/defer.hpp>
 #include <process/process.hpp>
 #include <process/timeout.hpp>
@@ -29,7 +31,6 @@
 #include <stout/stopwatch.hpp>
 #include <stout/strings.hpp>
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 using namespace mesos;

@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "logging/flags.hpp"
+#include <mesos/logging/flags.hpp>
 
 
 mesos::internal::logging::Flags::Flags()

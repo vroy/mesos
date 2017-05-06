@@ -30,6 +30,8 @@
 #include <mesos/master/contender.hpp>
 #include <mesos/master/detector.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <mesos/module/anonymous.hpp>
 #include <mesos/module/authorizer.hpp>
 
@@ -65,7 +67,6 @@
 
 #include "hook/manager.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 #include "master/master.hpp"

@@ -17,6 +17,8 @@
 #include <queue>
 #include <string>
 
+#include <mesos/logging/flags.hpp>
+
 #include <mesos/v1/executor.hpp>
 #include <mesos/v1/mesos.hpp>
 
@@ -48,7 +50,6 @@
 
 #include "internal/devolve.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 #include "slave/validation.hpp"

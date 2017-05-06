@@ -23,6 +23,8 @@
 #include <mesos/scheduler.hpp>
 #include <mesos/type_utils.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <stout/check.hpp>
 #include <stout/exit.hpp>
 #include <stout/flags.hpp>
@@ -32,7 +34,6 @@
 #include <stout/path.hpp>
 #include <stout/stringify.hpp>
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 using namespace mesos;

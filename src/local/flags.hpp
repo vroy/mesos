@@ -17,11 +17,11 @@
 #ifndef __LOCAL_FLAGS_HPP__
 #define __LOCAL_FLAGS_HPP__
 
+#include <mesos/logging/flags.hpp>
+
 #include <stout/flags.hpp>
 #include <stout/os.hpp>
 #include <stout/path.hpp>
-
-#include "logging/flags.hpp"
 
 namespace mesos {
 namespace internal {

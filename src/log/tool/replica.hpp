@@ -19,12 +19,12 @@
 
 #include <stdint.h>
 
+#include <mesos/logging/flags.hpp>
+
 #include <stout/flags.hpp>
 #include <stout/option.hpp>
 
 #include "log/tool.hpp"
-
-#include "logging/flags.hpp"
 
 namespace mesos {
 namespace internal {

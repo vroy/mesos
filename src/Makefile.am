@@ -623,6 +623,11 @@ logdir = $(pkgincludedir)/log
 log_HEADERS =								\
   $(top_srcdir)/include/mesos/log/log.hpp
 
+loggingdir = $(pkgincludedir)/logging
+
+logging_HEADERS =								\
+  $(top_srcdir)/include/mesos/logging/flags.hpp
+
 maintenancedir = $(pkgincludedir)/maintenance
 
 maintenance_HEADERS =							\
@@ -1026,7 +1031,6 @@ libmesos_no_3rdparty_la_SOURCES +=					\
   internal/evolve.hpp							\
   local/flags.hpp							\
   local/local.hpp							\
-  logging/flags.hpp							\
   logging/logging.hpp							\
   master/constants.hpp							\
   master/flags.hpp							\

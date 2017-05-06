@@ -17,6 +17,12 @@
 #include <string>
 #include <vector>
 
+#include <mesos/mesos.hpp>
+
+#include <mesos/fetcher/fetcher.hpp>
+
+#include <mesos/logging/flags.hpp>
+
 #include <process/owned.hpp>
 #include <process/subprocess.hpp>
 
@@ -30,15 +36,10 @@
 
 #include <stout/os/constants.hpp>
 
-#include <mesos/mesos.hpp>
-
-#include <mesos/fetcher/fetcher.hpp>
-
 #include "common/status_utils.hpp"
 
 #include "hdfs/hdfs.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 #include "slave/slave.hpp"

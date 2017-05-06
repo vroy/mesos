@@ -44,6 +44,8 @@
 
 #include <mesos/authentication/authenticatee.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <mesos/master/detector.hpp>
 
 #include <mesos/module/authenticatee.hpp>
@@ -86,7 +88,6 @@
 #include "local/flags.hpp"
 #include "local/local.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 #include "messages/messages.hpp"

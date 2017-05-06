@@ -17,11 +17,11 @@
 #ifndef __SCHED_FLAGS_HPP__
 #define __SCHED_FLAGS_HPP__
 
+#include <mesos/logging/flags.hpp>
+
 #include <stout/flags.hpp>
 
 #include "common/parse.hpp"
-
-#include "logging/flags.hpp"
 
 #include "messages/messages.hpp"
 

@@ -22,11 +22,11 @@
 #include <map>
 #include <string>
 
+#include <mesos/logging/flags.hpp>
+
 #include <process/process.hpp>
 
 #include <stout/option.hpp>
-
-#include "logging/flags.hpp"
 
 namespace mesos {
 namespace internal {

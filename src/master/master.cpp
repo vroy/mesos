@@ -36,6 +36,8 @@
 #include <mesos/master/contender.hpp>
 #include <mesos/master/detector.hpp>
 
+#include <mesos/logging/flags.hpp>
+
 #include <mesos/module/authenticator.hpp>
 
 #include <mesos/scheduler/scheduler.hpp>
@@ -81,7 +83,6 @@
 
 #include "hook/manager.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
 
 #include "master/flags.hpp"
