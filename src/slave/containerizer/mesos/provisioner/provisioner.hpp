@@ -25,6 +25,7 @@
 
 #include <mesos/docker/v1.hpp>
 
+#include <mesos/slave/flags.hpp>
 #include <mesos/slave/isolator.hpp> // For ContainerState.
 
 #include <stout/nothing.hpp>
@@ -35,8 +36,6 @@
 
 #include <process/metrics/counter.hpp>
 #include <process/metrics/metrics.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/fetcher.hpp"
 

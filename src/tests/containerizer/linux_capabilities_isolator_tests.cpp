@@ -21,6 +21,13 @@
 
 #include <gmock/gmock.h>
 
+#include <mesos/mesos.hpp>
+#include <mesos/scheduler.hpp>
+
+#include <mesos/master/detector.hpp>
+
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/gmock.hpp>
 #include <process/gtest.hpp>
@@ -36,14 +43,7 @@
 #include <stout/stringify.hpp>
 #include <stout/try.hpp>
 
-#include <mesos/mesos.hpp>
-#include <mesos/scheduler.hpp>
-
-#include <mesos/master/detector.hpp>
-
 #include "linux/capabilities.hpp"
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/fetcher.hpp"
 

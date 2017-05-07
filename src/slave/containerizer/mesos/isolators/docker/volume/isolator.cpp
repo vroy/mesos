@@ -14,12 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/collect.hpp>
 #include <process/id.hpp>
 
 #include <stout/os.hpp>
 
-#include "slave/flags.hpp"
 #include "slave/state.hpp"
 
 #include "slave/containerizer/mesos/isolators/docker/volume/isolator.hpp"

@@ -20,14 +20,14 @@
 #include <string>
 #include <vector>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/owned.hpp>
 
 #include <stout/hashset.hpp>
 #include <stout/try.hpp>
 
 #include "linux/cgroups.hpp"
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolators/cgroups/constants.hpp"
 #include "slave/containerizer/mesos/isolators/cgroups/subsystem.hpp"

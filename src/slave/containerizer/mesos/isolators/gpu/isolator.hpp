@@ -21,6 +21,8 @@
 #include <map>
 #include <set>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 
 #include <stout/hashmap.hpp>
@@ -29,8 +31,6 @@
 #include <stout/try.hpp>
 
 #include "linux/cgroups.hpp"
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

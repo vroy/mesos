@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/check.hpp>
 #include <process/dispatch.hpp>
 #include <process/future.hpp>
@@ -32,8 +34,6 @@
 #include <stout/stringify.hpp>
 #include <stout/strings.hpp>
 #include <stout/try.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolators/gpu/allocator.hpp"
 #include "slave/containerizer/mesos/isolators/gpu/nvml.hpp"

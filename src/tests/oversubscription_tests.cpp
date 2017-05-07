@@ -22,6 +22,7 @@
 
 #include <mesos/resources.hpp>
 
+#include <mesos/slave/flags.hpp>
 #include <mesos/slave/qos_controller.hpp>
 
 #include <process/clock.hpp>
@@ -42,7 +43,6 @@
 
 #include "module/manager.hpp"
 
-#include "slave/flags.hpp"
 #include "slave/slave.hpp"
 #include "slave/qos_controllers/load.hpp"
 

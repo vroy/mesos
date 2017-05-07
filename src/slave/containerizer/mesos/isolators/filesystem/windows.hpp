@@ -19,7 +19,7 @@
 
 #include <mesos/resources.hpp>
 
-#include "slave/flags.hpp"
+#include <mesos/slave/flags.hpp>
 
 #include "slave/containerizer/mesos/isolator.hpp"
 #include "slave/containerizer/mesos/isolators/filesystem/posix.hpp"

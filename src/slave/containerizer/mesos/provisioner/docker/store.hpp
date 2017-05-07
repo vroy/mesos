@@ -17,11 +17,11 @@
 #ifndef __PROVISIONER_DOCKER_STORE_HPP__
 #define __PROVISIONER_DOCKER_STORE_HPP__
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/owned.hpp>
 
 #include <stout/try.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/provisioner/store.hpp"
 

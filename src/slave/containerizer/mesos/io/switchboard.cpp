@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/address.hpp>
 #include <process/after.hpp>
 #include <process/clock.hpp>
@@ -64,7 +66,6 @@
 #include "common/recordio.hpp"
 #include "common/status_utils.hpp"
 
-#include "slave/flags.hpp"
 #include "slave/state.hpp"
 
 #include "slave/containerizer/mesos/paths.hpp"

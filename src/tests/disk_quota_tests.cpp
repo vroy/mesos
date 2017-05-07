@@ -22,6 +22,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/resources.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/gtest.hpp>
 #include <process/owned.hpp>
 #include <process/pid.hpp>
@@ -35,7 +37,6 @@
 #include "master/master.hpp"
 
 #include "slave/constants.hpp"
-#include "slave/flags.hpp"
 #include "slave/slave.hpp"
 
 #include "slave/containerizer/fetcher.hpp"

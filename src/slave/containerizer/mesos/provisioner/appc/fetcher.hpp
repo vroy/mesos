@@ -19,12 +19,12 @@
 
 #include <string>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/process.hpp>
 #include <process/shared.hpp>
 
 #include <stout/path.hpp>
-
-#include "slave/flags.hpp"
 
 #include "uri/fetcher.hpp"
 

@@ -23,12 +23,12 @@
 
 #include <mesos/resources.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 
 #include <stout/nothing.hpp>
 #include <stout/try.hpp>
-
-#include "slave/flags.hpp"
 
 namespace mesos {
 namespace internal {

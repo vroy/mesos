@@ -17,16 +17,16 @@
 #ifndef __PROVISIONER_DOCKER_REGISTRY_PULLER_HPP__
 #define __PROVISIONER_DOCKER_REGISTRY_PULLER_HPP__
 
+#include <mesos/slave/flags.hpp>
+
+#include <mesos/uri/fetcher.hpp>
+
 #include <process/owned.hpp>
 #include <process/shared.hpp>
 
 #include <stout/try.hpp>
 
-#include <mesos/uri/fetcher.hpp>
-
 #include "slave/containerizer/mesos/provisioner/docker/puller.hpp"
-
-#include "slave/flags.hpp"
 
 namespace mesos {
 namespace internal {

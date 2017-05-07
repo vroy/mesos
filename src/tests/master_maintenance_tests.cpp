@@ -19,6 +19,8 @@
 
 #include <mesos/maintenance/maintenance.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <mesos/v1/mesos.hpp>
 #include <mesos/v1/resources.hpp>
 #include <mesos/v1/scheduler.hpp>
@@ -49,8 +51,6 @@
 #include "master/master.hpp"
 
 #include "master/allocator/mesos/allocator.hpp"
-
-#include "slave/flags.hpp"
 
 #include "tests/containerizer.hpp"
 #include "tests/mesos.hpp"

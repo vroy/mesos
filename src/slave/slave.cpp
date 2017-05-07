@@ -35,6 +35,8 @@
 
 #include <mesos/module/authenticatee.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/async.hpp>
 #include <process/check.hpp>
 #include <process/collect.hpp>
@@ -88,7 +90,6 @@
 #include "module/manager.hpp"
 
 #include "slave/constants.hpp"
-#include "slave/flags.hpp"
 #include "slave/paths.hpp"
 #include "slave/slave.hpp"
 #include "slave/status_update_manager.hpp"

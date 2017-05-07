@@ -30,6 +30,7 @@
 
 #include <mesos/master/flags.hpp>
 
+#include <mesos/slave/flags.hpp>
 #include <mesos/slave/resource_estimator.hpp>
 
 #include <mesos/state/in_memory.hpp>
@@ -82,7 +83,6 @@
 #include "master/detector/standalone.hpp"
 #include "master/detector/zookeeper.hpp"
 
-#include "slave/flags.hpp"
 #include "slave/gc.hpp"
 #include "slave/slave.hpp"
 #include "slave/status_update_manager.hpp"

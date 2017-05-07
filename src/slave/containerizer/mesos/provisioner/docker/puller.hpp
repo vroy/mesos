@@ -22,15 +22,15 @@
 
 #include <stout/try.hpp>
 
-#include <process/future.hpp>
-#include <process/owned.hpp>
-#include <process/shared.hpp>
-
 #include <mesos/docker/spec.hpp>
+
+#include <mesos/slave/flags.hpp>
 
 #include <mesos/uri/fetcher.hpp>
 
-#include "slave/flags.hpp"
+#include <process/future.hpp>
+#include <process/owned.hpp>
+#include <process/shared.hpp>
 
 namespace mesos {
 namespace internal {

@@ -17,6 +17,8 @@
 #ifndef __POSIX_ISOLATOR_HPP__
 #define __POSIX_ISOLATOR_HPP__
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/id.hpp>
 
@@ -24,8 +26,6 @@
 #include <stout/os.hpp>
 
 #include <stout/os/pstree.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

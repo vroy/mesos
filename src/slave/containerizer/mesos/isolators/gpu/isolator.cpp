@@ -31,6 +31,8 @@ extern "C" {
 #include <string>
 #include <vector>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/collect.hpp>
 #include <process/defer.hpp>
 #include <process/future.hpp>
@@ -44,8 +46,6 @@ extern "C" {
 #include <stout/try.hpp>
 
 #include "linux/cgroups.hpp"
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/containerizer.hpp"
 

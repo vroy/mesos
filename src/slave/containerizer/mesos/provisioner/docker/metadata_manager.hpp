@@ -20,23 +20,23 @@
 #include <list>
 #include <string>
 
+#include <mesos/docker/spec.hpp>
+
+#include <mesos/slave/flags.hpp>
+
+#include <process/future.hpp>
+#include <process/owned.hpp>
+#include <process/process.hpp>
+
 #include <stout/hashmap.hpp>
 #include <stout/json.hpp>
 #include <stout/option.hpp>
 #include <stout/protobuf.hpp>
 #include <stout/try.hpp>
 
-#include <process/future.hpp>
-#include <process/owned.hpp>
-#include <process/process.hpp>
-
-#include <mesos/docker/spec.hpp>
-
 #include "slave/containerizer/mesos/provisioner/provisioner.hpp"
 
 #include "slave/containerizer/mesos/provisioner/docker/message.hpp"
-
-#include "slave/flags.hpp"
 
 namespace mesos {
 namespace internal {

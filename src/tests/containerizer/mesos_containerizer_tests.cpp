@@ -24,6 +24,7 @@
 
 #include <mesos/mesos.hpp>
 
+#include <mesos/slave/flags.hpp>
 #include <mesos/slave/isolator.hpp>
 
 #include <process/future.hpp>
@@ -34,7 +35,6 @@
 #include <stout/strings.hpp>
 #include <stout/uuid.hpp>
 
-#include "slave/flags.hpp"
 #include "slave/slave.hpp"
 
 #include "slave/containerizer/fetcher.hpp"

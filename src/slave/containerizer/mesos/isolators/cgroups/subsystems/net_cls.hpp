@@ -23,6 +23,8 @@
 
 #include <mesos/resources.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/owned.hpp>
 
@@ -34,8 +36,6 @@
 #include <stout/option.hpp>
 #include <stout/result.hpp>
 #include <stout/try.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolators/cgroups/constants.hpp"
 #include "slave/containerizer/mesos/isolators/cgroups/subsystem.hpp"

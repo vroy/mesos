@@ -23,6 +23,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/type_utils.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <mesos/fetcher/fetcher.hpp>
 
 #include <process/id.hpp>
@@ -31,8 +33,6 @@
 #include <process/subprocess.hpp>
 
 #include <stout/hashmap.hpp>
-
-#include "slave/flags.hpp"
 
 namespace mesos {
 namespace internal {

@@ -25,6 +25,8 @@
 #include <mesos/resources.hpp>
 #include <mesos/scheduler.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/dispatch.hpp>
 #include <process/future.hpp>
 #include <process/gmock.hpp>
@@ -51,7 +53,6 @@
 #include "master/master.hpp"
 
 #include "slave/constants.hpp"
-#include "slave/flags.hpp"
 #include "slave/gc.hpp"
 #include "slave/paths.hpp"
 #include "slave/slave.hpp"

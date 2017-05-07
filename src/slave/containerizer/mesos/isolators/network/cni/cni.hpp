@@ -17,12 +17,12 @@
 #ifndef __NETWORK_CNI_ISOLATOR_HPP__
 #define __NETWORK_CNI_ISOLATOR_HPP__
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/id.hpp>
 #include <process/subprocess.hpp>
 
 #include <stout/subcommand.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

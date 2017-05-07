@@ -19,12 +19,12 @@
 
 #include <mesos/module/isolator.hpp>
 
+#include <mesos/slave/flags.hpp>
 #include <mesos/slave/isolator.hpp>
 
 #include <stout/try.hpp>
 
 #include "slave/containerizer/mesos/isolators/posix.hpp"
-#include "slave/flags.hpp"
 
 using namespace mesos;
 

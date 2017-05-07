@@ -21,9 +21,9 @@
 
 #include <mesos/docker/spec.hpp>
 
-#include "slave/containerizer/mesos/provisioner/docker/puller.hpp"
+#include <mesos/slave/flags.hpp>
 
-#include "slave/flags.hpp"
+#include "slave/containerizer/mesos/provisioner/docker/puller.hpp"
 
 namespace mesos {
 namespace internal {

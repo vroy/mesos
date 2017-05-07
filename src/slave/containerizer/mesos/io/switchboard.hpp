@@ -19,17 +19,16 @@
 
 #include <string>
 
+#include <mesos/slave/containerizer.hpp>
+#include <mesos/slave/container_logger.hpp>
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/http.hpp>
 #include <process/owned.hpp>
 #include <process/socket.hpp>
 
 #include <stout/try.hpp>
-
-#include <mesos/slave/containerizer.hpp>
-#include <mesos/slave/container_logger.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

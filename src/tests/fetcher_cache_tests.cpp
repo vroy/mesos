@@ -27,6 +27,8 @@
 
 #include <mesos/master/flags.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/check.hpp>
 #include <process/clock.hpp>
 #include <process/collect.hpp>
@@ -49,7 +51,6 @@
 
 #include "slave/constants.hpp"
 #include "slave/gc.hpp"
-#include "slave/flags.hpp"
 #include "slave/paths.hpp"
 #include "slave/slave.hpp"
 

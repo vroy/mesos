@@ -23,6 +23,12 @@
 
 #include <hdfs/hdfs.hpp>
 
+#include <mesos/type_utils.hpp>
+
+#include <mesos/fetcher/fetcher.hpp>
+
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/gmock.hpp>
 #include <process/gtest.hpp>
@@ -40,11 +46,7 @@
 
 #include <stout/os/permissions.hpp>
 
-#include <mesos/fetcher/fetcher.hpp>
-#include <mesos/type_utils.hpp>
-
 #include "slave/containerizer/fetcher.hpp"
-#include "slave/flags.hpp"
 
 #include "tests/environment.hpp"
 #include "tests/flags.hpp"

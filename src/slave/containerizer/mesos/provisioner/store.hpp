@@ -26,12 +26,12 @@
 
 #include <mesos/docker/v1.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/owned.hpp>
 
 #include <stout/try.hpp>
-
-#include "slave/flags.hpp"
 
 namespace mesos {
 namespace internal {

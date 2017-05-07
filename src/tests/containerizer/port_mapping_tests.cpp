@@ -20,6 +20,8 @@
 
 #include <gmock/gmock.h>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/io.hpp>
 #include <process/owned.hpp>
@@ -53,7 +55,6 @@
 
 #include "mesos/mesos.hpp"
 
-#include "slave/flags.hpp"
 #include "slave/slave.hpp"
 
 #include "slave/containerizer/fetcher.hpp"

@@ -19,13 +19,14 @@
 
 #include <string>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/owned.hpp>
 
 #include <stout/bytes.hpp>
 #include <stout/duration.hpp>
 #include <stout/hashmap.hpp>
 
-#include "slave/flags.hpp"
 #include "slave/state.hpp"
 
 #include "slave/containerizer/mesos/isolator.hpp"

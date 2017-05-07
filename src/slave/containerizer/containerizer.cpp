@@ -18,6 +18,8 @@
 #include <set>
 #include <vector>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/dispatch.hpp>
 #include <process/owned.hpp>
 
@@ -31,7 +33,6 @@
 
 #include "hook/manager.hpp"
 
-#include "slave/flags.hpp"
 #include "slave/slave.hpp"
 
 #include "slave/containerizer/composing.hpp"

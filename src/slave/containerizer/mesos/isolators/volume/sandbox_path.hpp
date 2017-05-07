@@ -19,9 +19,9 @@
 
 #include <string>
 
-#include <stout/hashmap.hpp>
+#include <mesos/slave/flags.hpp>
 
-#include "slave/flags.hpp"
+#include <stout/hashmap.hpp>
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

@@ -19,16 +19,16 @@
 
 #include <glog/logging.h>
 
+#include <mesos/docker/v1.hpp>
+
+#include <mesos/slave/flags.hpp>
+
 #include <process/id.hpp>
 
 #include <stout/error.hpp>
 #include <stout/foreach.hpp>
 #include <stout/stringify.hpp>
 #include <stout/strings.hpp>
-
-#include <mesos/docker/v1.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolators/docker/runtime.hpp"
 

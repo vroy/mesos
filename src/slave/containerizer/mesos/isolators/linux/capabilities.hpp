@@ -17,9 +17,9 @@
 #ifndef __LINUX_CAPABILITIES_ISOLATOR_HPP__
 #define __LINUX_CAPABILITIES_ISOLATOR_HPP__
 
-#include <stout/try.hpp>
+#include <mesos/slave/flags.hpp>
 
-#include "slave/flags.hpp"
+#include <stout/try.hpp>
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

@@ -17,7 +17,7 @@
 #ifndef __SHARED_FILESYSTEM_ISOLATOR_HPP__
 #define __SHARED_FILESYSTEM_ISOLATOR_HPP__
 
-#include "slave/flags.hpp"
+#include <mesos/slave/flags.hpp>
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

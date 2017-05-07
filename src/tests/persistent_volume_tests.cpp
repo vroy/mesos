@@ -25,6 +25,8 @@
 
 #include <mesos/master/flags.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/clock.hpp>
 #include <process/gmock.hpp>
 #include <process/gtest.hpp>
@@ -47,7 +49,6 @@
 
 #include "master/detector/standalone.hpp"
 
-#include "slave/flags.hpp"
 #include "slave/paths.hpp"
 #include "slave/slave.hpp"
 

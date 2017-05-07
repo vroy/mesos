@@ -18,6 +18,8 @@
 
 #include <gmock/gmock.h>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/clock.hpp>
 #include <process/future.hpp>
 #include <process/gmock.hpp>
@@ -37,7 +39,6 @@
 #include "master/detector/standalone.hpp"
 
 #include "slave/constants.hpp"
-#include "slave/flags.hpp"
 #include "slave/slave.hpp"
 
 #include "tests/containerizer.hpp"

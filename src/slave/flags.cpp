@@ -14,7 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "slave/flags.hpp"
+#include <mesos/type_utils.hpp>
+
+#include <mesos/slave/flags.hpp>
 
 #include <stout/error.hpp>
 #include <stout/flags.hpp>
@@ -22,8 +24,6 @@
 #include <stout/option.hpp>
 #include <stout/os.hpp>
 #include <stout/path.hpp>
-
-#include <mesos/type_utils.hpp>
 
 #include "common/http.hpp"
 #include "common/parse.hpp"

@@ -25,6 +25,8 @@
 #include <string>
 #include <vector>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/id.hpp>
 #include <process/owned.hpp>
 #include <process/subprocess.hpp>
@@ -43,8 +45,6 @@
 #include <stout/subcommand.hpp>
 
 #include "linux/routing/filter/ip.hpp"
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

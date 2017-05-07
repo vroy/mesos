@@ -17,7 +17,7 @@
 #ifndef __NAMESPACES_IPC_ISOLATOR_HPP__
 #define __NAMESPACES_IPC_ISOLATOR_HPP__
 
-#include "slave/flags.hpp"
+#include <mesos/slave/flags.hpp>
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

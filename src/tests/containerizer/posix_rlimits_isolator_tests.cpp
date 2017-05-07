@@ -19,6 +19,13 @@
 
 #include <gmock/gmock.h>
 
+#include <mesos/mesos.hpp>
+#include <mesos/scheduler.hpp>
+
+#include <mesos/master/detector.hpp>
+
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/gtest.hpp>
 #include <process/owned.hpp>
@@ -26,12 +33,6 @@
 #include <stout/gtest.hpp>
 #include <stout/try.hpp>
 
-#include <mesos/master/detector.hpp>
-
-#include <mesos/mesos.hpp>
-#include <mesos/scheduler.hpp>
-
-#include "slave/flags.hpp"
 #include "tests/cluster.hpp"
 #include "tests/environment.hpp"
 #include "tests/mesos.hpp"

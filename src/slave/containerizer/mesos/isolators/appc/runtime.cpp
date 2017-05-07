@@ -19,14 +19,14 @@
 
 #include <glog/logging.h>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/id.hpp>
 
 #include <stout/error.hpp>
 #include <stout/foreach.hpp>
 #include <stout/stringify.hpp>
 #include <stout/strings.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolators/appc/runtime.hpp"
 

@@ -22,6 +22,8 @@
 
 #include <mesos/mesos.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/pid.hpp>
 #include <process/timeout.hpp>
@@ -33,8 +35,6 @@
 #include <stout/uuid.hpp>
 
 #include "messages/messages.hpp"
-
-#include "slave/flags.hpp"
 
 namespace mesos {
 namespace internal {

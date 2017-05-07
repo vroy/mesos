@@ -24,6 +24,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/resources.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/gtest.hpp>
 #include <process/pid.hpp>
 
@@ -38,7 +40,6 @@
 
 #include "master/master.hpp"
 
-#include "slave/flags.hpp"
 #include "slave/paths.hpp"
 #include "slave/slave.hpp"
 

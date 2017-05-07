@@ -21,6 +21,8 @@
 
 #include <mesos/type_utils.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <stout/check.hpp>
 #include <stout/flags.hpp>
 #include <stout/os.hpp>

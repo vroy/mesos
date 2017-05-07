@@ -31,6 +31,8 @@
 
 #include <mesos/scheduler/scheduler.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/clock.hpp>
 #include <process/future.hpp>
 #include <process/gmock.hpp>
@@ -61,7 +63,6 @@
 
 #include "slave/constants.hpp"
 #include "slave/gc.hpp"
-#include "slave/flags.hpp"
 #include "slave/slave.hpp"
 
 #include "slave/containerizer/fetcher.hpp"

@@ -20,14 +20,14 @@
 #include <mesos/mesos.hpp>
 #include <mesos/resources.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/owned.hpp>
 #include <process/pid.hpp>
 
 #include <process/metrics/gauge.hpp>
 
 #include <stout/hashmap.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

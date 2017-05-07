@@ -25,6 +25,7 @@
 
 #include <mesos/mesos.hpp>
 
+#include <mesos/slave/flags.hpp>
 #include <mesos/slave/isolator.hpp>
 
 #include <process/future.hpp>
@@ -36,8 +37,6 @@
 #include <stout/lambda.hpp>
 #include <stout/option.hpp>
 #include <stout/try.hpp>
-
-#include "slave/flags.hpp"
 
 namespace mesos {
 namespace internal {

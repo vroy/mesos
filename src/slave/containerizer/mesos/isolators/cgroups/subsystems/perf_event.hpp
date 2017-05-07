@@ -22,14 +22,14 @@
 
 #include <mesos/resources.hpp>
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/clock.hpp>
 #include <process/future.hpp>
 #include <process/owned.hpp>
 #include <process/time.hpp>
 
 #include <stout/hashmap.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolators/cgroups/constants.hpp"
 #include "slave/containerizer/mesos/isolators/cgroups/subsystem.hpp"

@@ -41,6 +41,7 @@
 #include <mesos/module/authenticatee.hpp>
 
 #include <mesos/slave/containerizer.hpp>
+#include <mesos/slave/flags.hpp>
 #include <mesos/slave/qos_controller.hpp>
 #include <mesos/slave/resource_estimator.hpp>
 
@@ -77,7 +78,6 @@
 
 #include "slave/constants.hpp"
 #include "slave/containerizer/containerizer.hpp"
-#include "slave/flags.hpp"
 #include "slave/gc.hpp"
 #include "slave/metrics.hpp"
 #include "slave/paths.hpp"

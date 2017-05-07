@@ -17,10 +17,10 @@
 #ifndef __WINDOWS_ISOLATOR_HPP__
 #define __WINDOWS_ISOLATOR_HPP__
 
+#include <mesos/slave/flags.hpp>
+
 #include <process/future.hpp>
 #include <process/id.hpp>
-
-#include "slave/flags.hpp"
 
 #include "slave/containerizer/mesos/isolator.hpp"
 #include "slave/containerizer/mesos/isolators/posix.hpp"

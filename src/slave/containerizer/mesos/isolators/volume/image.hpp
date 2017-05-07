@@ -21,9 +21,9 @@
 #include <string>
 #include <vector>
 
-#include <process/shared.hpp>
+#include <mesos/slave/flags.hpp>
 
-#include "slave/flags.hpp"
+#include <process/shared.hpp>
 
 #include "slave/containerizer/mesos/isolator.hpp"
 

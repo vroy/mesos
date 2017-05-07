@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef __SLAVE_FLAGS_HPP__
-#define __SLAVE_FLAGS_HPP__
+#ifndef __MESOS_SLAVE_FLAGS_HPP__
+#define __MESOS_SLAVE_FLAGS_HPP__
 
 #include <cstdint>
 #include <string>
@@ -185,4 +185,4 @@ public:
 } // namespace internal {
 } // namespace mesos {
 
-#endif // __SLAVE_FLAGS_HPP__
+#endif // __MESOS_SLAVE_FLAGS_HPP__

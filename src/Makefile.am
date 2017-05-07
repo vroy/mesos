@@ -727,6 +727,7 @@ agent_HEADERS =								\
   $(top_srcdir)/include/mesos/agent/agent.proto				\
   $(top_srcdir)/include/mesos/slave/container_logger.hpp		\
   $(top_srcdir)/include/mesos/slave/containerizer.hpp			\
+  $(top_srcdir)/include/mesos/slave/flags.hpp				\
   $(top_srcdir)/include/mesos/slave/isolator.hpp			\
   $(top_srcdir)/include/mesos/slave/oversubscription.hpp		\
   $(top_srcdir)/include/mesos/slave/oversubscription.proto		\
@@ -1070,7 +1071,6 @@ libmesos_no_3rdparty_la_SOURCES +=					\
   scheduler/constants.hpp						\
   scheduler/flags.hpp							\
   slave/constants.hpp							\
-  slave/flags.hpp							\
   slave/gc.hpp								\
   slave/metrics.hpp							\
   slave/paths.hpp							\

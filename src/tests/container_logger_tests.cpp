@@ -22,6 +22,7 @@
 
 #include <mesos/slave/container_logger.hpp>
 #include <mesos/slave/containerizer.hpp>
+#include <mesos/slave/flags.hpp>
 
 #include <process/clock.hpp>
 #include <process/future.hpp>
@@ -46,7 +47,6 @@
 
 #include "master/master.hpp"
 
-#include "slave/flags.hpp"
 #include "slave/paths.hpp"
 #include "slave/slave.hpp"
 
