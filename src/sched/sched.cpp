@@ -50,6 +50,8 @@
 
 #include <mesos/module/authenticatee.hpp>
 
+#include <mesos/sched/flags.hpp>
+
 #include <mesos/scheduler/scheduler.hpp>
 
 #include <process/defer.hpp>
@@ -95,7 +97,6 @@
 #include "module/manager.hpp"
 
 #include "sched/constants.hpp"
-#include "sched/flags.hpp"
 
 #include "version/version.hpp"
 

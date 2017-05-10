@@ -711,6 +711,11 @@ resourceprovider_HEADERS =						\
 nodist_resourceprovider_HEADERS =					\
   ../include/mesos/resource_provider/resource_provider.pb.h
 
+scheddir = $(pkgincludedir)/sched
+
+sched_HEADERS =								\
+  $(top_srcdir)/include/mesos/sched/flags.hpp
+
 schedulerdir = $(pkgincludedir)/scheduler
 
 scheduler_HEADERS =							\
@@ -939,6 +944,7 @@ libmesos_no_3rdparty_la_SOURCES +=					\
   module/manager.cpp							\
   oci/spec.cpp								\
   posix/rlimits.cpp							\
+  sched/flags.cpp							\
   sched/sched.cpp							\
   scheduler/scheduler.cpp						\
   slave/constants.cpp							\
@@ -1067,7 +1073,6 @@ libmesos_no_3rdparty_la_SOURCES +=					\
   module/manager.hpp							\
   posix/rlimits.hpp							\
   sched/constants.hpp							\
-  sched/flags.hpp							\
   scheduler/constants.hpp						\
   scheduler/flags.hpp							\
   slave/constants.hpp							\
