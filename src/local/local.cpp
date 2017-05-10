@@ -207,13 +207,12 @@ PID<Master> launch(const Flags& flags, Allocator* _allocator)
         << masterFlags.work_dir.get() << "': " << mkdir.error();
     }
 
-    // Load modules. Note that this covers both, master and slave
+    // Initialize modules.
+    // Note that this covers both, master and slave
     // specific modules as both use the same flag (--modules).
-    if (masterFlags.modules.isSome()) {
-      Try<Nothing> result = ModuleManager::load(masterFlags.modules.get());
-      if (result.isError()) {
-        EXIT(EXIT_FAILURE) << "Error loading modules: " << result.error();
-      }
+    Try<Nothing> modules = ModuleManager::initialize(masterFlags);
+    if (modules.isError()) {
+      EXIT(EXIT_FAILURE) << "Error initializing modules: " << modules.error();
     }
 
     if (masterFlags.registry == "in_memory") {

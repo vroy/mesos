@@ -1954,31 +1954,11 @@ Status MesosSchedulerDriver::start()
 
     // Initialize modules. Note that since other subsystems may depend
     // upon modules, we should initialize modules before anything else.
-    if (flags.modules.isSome() && flags.modulesDir.isSome()) {
+    Try<Nothing> modules = modules::ModuleManager::initialize(flags);
+    if (modules.isError()) {
       status = DRIVER_ABORTED;
-      scheduler->error(
-          this,
-          "Only one of MESOS_MODULES or MESOS_MODULES_DIR should be specified");
+      scheduler->error(this, "Error loading modules: " + modules.error());
       return status;
-    }
-
-    if (flags.modulesDir.isSome()) {
-      Try<Nothing> result =
-        modules::ModuleManager::load(flags.modulesDir.get());
-      if (result.isError()) {
-        status = DRIVER_ABORTED;
-        scheduler->error(this, "Error loading modules: " + result.error());
-        return status;
-      }
-    }
-
-    if (flags.modules.isSome()) {
-      Try<Nothing> result = modules::ModuleManager::load(flags.modules.get());
-      if (result.isError()) {
-        status = DRIVER_ABORTED;
-        scheduler->error(this, "Error loading modules: " + result.error());
-        return status;
-      }
     }
 
     CHECK(process == nullptr);

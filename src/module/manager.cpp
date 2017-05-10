@@ -14,6 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "module/manager.hpp"
+
 #include <mutex>
 #include <string>
 #include <vector>
@@ -32,8 +34,6 @@
 
 #include "common/parse.hpp"
 #include "messages/messages.hpp"
-
-#include "module/manager.hpp"
 
 using std::list;
 using std::string;
@@ -55,8 +55,33 @@ hashmap<string, Parameters> ModuleManager::moduleParameters;
 hashmap<string, string> ModuleManager::moduleLibraries;
 hashmap<string, DynamicLibrary*> ModuleManager::dynamicLibraries;
 
+Option<master::Flags> ModuleManager::masterFlags = None();
+Option<slave::Flags> ModuleManager::slaveFlags = None();
+Option<sched::Flags> ModuleManager::schedFlags = None();
 
-void ModuleManager::initialize()
+
+Try<Nothing> ModuleManager::initialize(const master::Flags& masterFlags)
+{
+  return initialize(masterFlags, None(), None());
+}
+
+
+Try<Nothing> ModuleManager::initialize(const slave::Flags& slaveFlags)
+{
+  return initialize(None(), slaveFlags, None());
+}
+
+
+Try<Nothing> ModuleManager::initialize(const sched::Flags& schedFlags)
+{
+  return initialize(None(), None(), schedFlags);
+}
+
+
+Try<Nothing> ModuleManager::initialize(
+    const Option<master::Flags>& _masterFlags,
+    const Option<slave::Flags>& _slaveFlags,
+    const Option<sched::Flags>& _schedFlags)
 {
   // ATTENTION: Every time a Mesos developer breaks compatibility with
   // a module kind type, this table needs to be updated.
@@ -105,6 +130,50 @@ void ModuleManager::initialize()
   // modules, not how they maintain functional compatibility with
   // Mesos and among each other.  This is covered by their own
   // "isCompatible" call.
+
+  if (schedFlags.isSome()) {
+    CHECK(masterFlags.isNone() && slaveFlags.isNone());
+  } else {
+    CHECK(masterFlags.isSome() ^ slaveFlags.isSome());
+  }
+
+  masterFlags = _masterFlags;
+  slaveFlags = _slaveFlags;
+  schedFlags = _schedFlags;
+
+  Option<Modules> modules;
+  Option<string> modulesDir;
+  if (masterFlags.isSome()) {
+    modules = masterFlags->modules;
+    modulesDir = masterFlags->modulesDir;
+  } else if (slaveFlags.isSome()){
+    modules = slaveFlags->modules;
+    modulesDir = slaveFlags->modulesDir;
+  } else if (schedFlags.isSome()) {
+    modules = schedFlags->modules;
+    modulesDir = schedFlags->modulesDir;
+  }
+
+  // Initialize modules.
+  if (modules.isSome() && modulesDir.isSome()) {
+    return Error("Only one of --modules or --modules_dir should be specified");
+  }
+
+  if (modulesDir.isSome()) {
+    Try<Nothing> result = ModuleManager::load(modulesDir.get());
+    if (result.isError()) {
+      return Error("Error loading modules: " + result.error());
+    }
+  }
+
+  if (modules.isSome()) {
+    Try<Nothing> result = ModuleManager::loadManifest(modules.get());
+    if (result.isError()) {
+      return Error("Error loading modules: " + result.error());
+    }
+  }
+
+  return Nothing();
 }
 
 
@@ -267,8 +336,6 @@ Try<Nothing> ModuleManager::verifyIdenticalModule(
 Try<Nothing> ModuleManager::loadManifest(const Modules& modules)
 {
   synchronized (mutex) {
-    initialize();
-
     foreach (const Modules::Library& library, modules.libraries()) {
       string libraryName;
       if (library.has_file()) {

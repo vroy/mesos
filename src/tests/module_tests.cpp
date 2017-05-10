@@ -22,6 +22,8 @@
 
 #include <mesos/slave/isolator.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/dynamiclibrary.hpp>
 #include <stout/os.hpp>
 #include <stout/path.hpp>
@@ -89,12 +91,6 @@ protected:
   // later loads to succeed.
   ~ModuleTest()
   {
-    // The TestModule instance is created by calling new. Let's
-    // delete it to avoid memory leaks.
-    if (module.isSome()) {
-      delete module.get();
-    }
-
     // Reset module API version and Mesos version in case the test
     // changed them.
     moduleBase->kind = "TestModule";
@@ -105,8 +101,16 @@ protected:
     ModuleManager::unload(DEFAULT_MODULE_NAME);
   }
 
+  mesos::internal::master::Flags getFlags(const Modules& module)
+  {
+    // Use master flags for supplying module information to ModuleManager.
+    mesos::internal::master::Flags flags;
+    flags.modules = module;
+    return flags;
+  }
+
   Modules defaultModules;
-  Result<TestModule*> module;
+  Result<process::Owned<TestModule>> module;
 
   static DynamicLibrary dynamicLibrary;
   static ModuleBase* moduleBase;
@@ -183,7 +187,7 @@ Try<Modules> getModulesFromJson(
 // Mesos version exactly.
 TEST_F(ModuleTest, ExampleModuleLoadTest)
 {
-  EXPECT_SOME(ModuleManager::load(defaultModules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(defaultModules)));
 
   EXPECT_TRUE(ModuleManager::contains<TestModule>(DEFAULT_MODULE_NAME));
   module = ModuleManager::create<TestModule>(DEFAULT_MODULE_NAME);
@@ -223,7 +227,9 @@ TEST_F(ModuleTest, ModulesDirTest)
       stringify(JSON::protobuf(extraModules))));
 
   // Now load modules using the modules directory.
-  EXPECT_SOME(ModuleManager::load(modulesDir));
+  mesos::internal::master::Flags flags;
+  flags.modulesDir = modulesDir;
+  EXPECT_SOME(ModuleManager::initialize(flags));
 
   EXPECT_TRUE(ModuleManager::contains<TestModule>(DEFAULT_MODULE_NAME));
   EXPECT_TRUE(ModuleManager::contains<Hook>("org_apache_mesos_TestHook"));
@@ -242,7 +248,7 @@ TEST_F(ModuleTest, ParameterWithoutValue)
       "operation",
       "");
 
-  EXPECT_SOME(ModuleManager::load(modules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(modules)));
   module = ModuleManager::create<TestModule>(DEFAULT_MODULE_NAME);
   EXPECT_ERROR(module);
 }
@@ -257,7 +263,7 @@ TEST_F(ModuleTest, ParameterWithInvalidValue)
       "operation",
       "X");
 
-  EXPECT_SOME(ModuleManager::load(modules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(modules)));
   module = ModuleManager::create<TestModule>(DEFAULT_MODULE_NAME);
   EXPECT_ERROR(module);
 }
@@ -272,7 +278,7 @@ TEST_F(ModuleTest, ParameterWithoutKey)
       "",
       "sum");
 
-  EXPECT_SOME(ModuleManager::load(modules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(modules)));
   module = ModuleManager::create<TestModule>(DEFAULT_MODULE_NAME);
   EXPECT_SOME(module);
 
@@ -290,7 +296,7 @@ TEST_F(ModuleTest, ParameterWithInvalidKey)
       "X",
       "sum");
 
-  EXPECT_SOME(ModuleManager::load(modules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(modules)));
   module = ModuleManager::create<TestModule>(DEFAULT_MODULE_NAME);
   EXPECT_SOME(module);
 
@@ -308,7 +314,7 @@ TEST_F(ModuleTest, ValidParameters)
       "operation",
       "sum");
 
-  EXPECT_SOME(ModuleManager::load(modules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(modules)));
   module = ModuleManager::create<TestModule>(DEFAULT_MODULE_NAME);
   EXPECT_SOME(module);
 
@@ -325,7 +331,7 @@ TEST_F(ModuleTest, OverrideJson)
       "operation",
       "sum");
 
-  EXPECT_SOME(ModuleManager::load(modules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(modules)));
 
   Parameters parameters;
   Parameter* parameter = parameters.add_parameter();
@@ -353,7 +359,7 @@ TEST_F(ModuleTest, JsonParseTest)
       "sum");
   EXPECT_SOME(modules);
 
-  EXPECT_SOME(ModuleManager::load(modules.get()));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(modules.get())));
   module = ModuleManager::create<TestModule>(DEFAULT_MODULE_NAME);
   EXPECT_SOME(module);
 
@@ -365,7 +371,7 @@ TEST_F(ModuleTest, JsonParseTest)
 // already.  Unloading unknown modules should fail as well.
 TEST_F(ModuleTest, ExampleModuleUnloadTest)
 {
-  EXPECT_SOME(ModuleManager::load(defaultModules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(defaultModules)));
 
   module = ModuleManager::create<TestModule>(DEFAULT_MODULE_NAME);
   EXPECT_SOME(module);
@@ -385,14 +391,14 @@ TEST_F(ModuleTest, ExampleModuleUnloadTest)
 TEST_F(ModuleTest, InvalidModuleKind)
 {
   moduleBase->kind = "NotTestModule";
-  EXPECT_ERROR(ModuleManager::load(defaultModules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(defaultModules)));
 }
 
 
 // Verify that loading a module of different kind fails.
 TEST_F(ModuleTest, ModuleKindMismatch)
 {
-  EXPECT_SOME(ModuleManager::load(defaultModules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(defaultModules)));
 
   EXPECT_TRUE(ModuleManager::contains<TestModule>(DEFAULT_MODULE_NAME));
   EXPECT_FALSE(ModuleManager::contains<Isolator>(DEFAULT_MODULE_NAME));
@@ -423,7 +429,7 @@ TEST_F(ModuleTest, LibraryNameWithoutExtension)
   Modules::Library::Module* module = library->add_modules();
   module->set_name(DEFAULT_MODULE_NAME);
 
-  EXPECT_SOME(ModuleManager::load(modules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(modules)));
 }
 
 
@@ -433,7 +439,7 @@ TEST_F(ModuleTest, EmptyLibraryFilename)
   Modules modules = getModules(
       "",
       "org_apache_mesos_TestModule");
-  EXPECT_ERROR(ModuleManager::load(modules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(modules)));
 }
 
 
@@ -441,7 +447,7 @@ TEST_F(ModuleTest, EmptyLibraryFilename)
 TEST_F(ModuleTest, EmptyModuleName)
 {
   Modules modules = getModules("examplemodule", "");
-  EXPECT_ERROR(ModuleManager::load(modules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(modules)));
 }
 
 
@@ -451,7 +457,7 @@ TEST_F(ModuleTest, UnknownLibraryTest)
   Modules modules = getModules(
       "unknown",
       "org_apache_mesos_TestModule");
-  EXPECT_ERROR(ModuleManager::load(modules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(modules)));
 }
 
 
@@ -460,7 +466,7 @@ TEST_F(ModuleTest, UnknownLibraryTest)
 TEST_F(ModuleTest, UnknownModuleTest)
 {
   Modules modules = getModules("examplemodule", "unknown");
-  EXPECT_ERROR(ModuleManager::load(modules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(modules)));
 }
 
 
@@ -468,7 +474,7 @@ TEST_F(ModuleTest, UnknownModuleTest)
 // name.
 TEST_F(ModuleTest, UnknownModuleInstantiationTest)
 {
-  EXPECT_SOME(ModuleManager::load(defaultModules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(defaultModules)));
   EXPECT_ERROR(ModuleManager::create<TestModule>("unknown"));
 }
 
@@ -479,7 +485,7 @@ TEST_F(ModuleTest, NonModuleLibrary)
   // Trying to load libmesos.so (libmesos.dylib on OS X) as a module
   // library should fail.
   Modules modules = getModules("mesos", DEFAULT_MODULE_NAME);
-  EXPECT_ERROR(ModuleManager::load(modules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(modules)));
 }
 
 
@@ -487,10 +493,10 @@ TEST_F(ModuleTest, NonModuleLibrary)
 TEST_F(ModuleTest, LoadSameModuleTwice)
 {
   // First load the default modules.
-  EXPECT_SOME(ModuleManager::load(defaultModules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(defaultModules)));
 
   // Try to load the same module once again.
-  EXPECT_SOME(ModuleManager::load(defaultModules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(defaultModules)));
 }
 
 
@@ -498,7 +504,7 @@ TEST_F(ModuleTest, LoadSameModuleTwice)
 TEST_F(ModuleTest, DuplicateModulesWithDifferentParameters)
 {
   // First load the default modules.
-  EXPECT_SOME(ModuleManager::load(defaultModules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(defaultModules)));
 
   // Create a duplicate modules object with some parameters.
   Modules duplicateModules = getModules(
@@ -507,7 +513,7 @@ TEST_F(ModuleTest, DuplicateModulesWithDifferentParameters)
       "operation",
       "X");
 
-  EXPECT_ERROR(ModuleManager::load(duplicateModules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(duplicateModules)));
 }
 
 
@@ -515,7 +521,7 @@ TEST_F(ModuleTest, DuplicateModulesWithDifferentParameters)
 TEST_F(ModuleTest, DuplicateModuleInDifferentLibraries)
 {
   // First load the default modules.
-  EXPECT_SOME(ModuleManager::load(defaultModules));
+  EXPECT_SOME(ModuleManager::initialize(getFlags(defaultModules)));
 
   // Create a duplicate modules object with different library name.
   // We use the full name for library (i.e., examplemodule-X.Y.Z) to simulate
@@ -526,7 +532,7 @@ TEST_F(ModuleTest, DuplicateModuleInDifferentLibraries)
   // Create a duplicate modules object with some parameters.
   Modules duplicateModules = getModules(library, DEFAULT_MODULE_NAME);
 
-  EXPECT_ERROR(ModuleManager::load(duplicateModules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(duplicateModules)));
 }
 
 
@@ -536,15 +542,15 @@ TEST_F(ModuleTest, DifferentApiVersion)
 {
   // Make the API version '0'.
   moduleBase->moduleApiVersion = "0";
-  EXPECT_ERROR(ModuleManager::load(defaultModules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(defaultModules)));
 
   // Make the API version arbitrarily high.
   moduleBase->moduleApiVersion = "1000";
-  EXPECT_ERROR(ModuleManager::load(defaultModules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(defaultModules)));
 
   // Make the API version some random string.
   moduleBase->moduleApiVersion = "ThisIsNotAnAPIVersion!";
-  EXPECT_ERROR(ModuleManager::load(defaultModules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(defaultModules)));
 }
 
 
@@ -554,7 +560,7 @@ TEST_F(ModuleTest, NewerModuleLibrary)
 {
   // Make the library version arbitrarily high.
   moduleBase->mesosVersion = "100.1.0";
-  EXPECT_ERROR(ModuleManager::load(defaultModules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(defaultModules)));
 }
 
 
@@ -564,7 +570,7 @@ TEST_F(ModuleTest, OlderModuleLibrary)
 {
   // Make the library version arbitrarily low.
   moduleBase->mesosVersion = "0.1.0";
-  EXPECT_ERROR(ModuleManager::load(defaultModules));
+  EXPECT_ERROR(ModuleManager::initialize(getFlags(defaultModules)));
 }
 
 } // namespace tests {

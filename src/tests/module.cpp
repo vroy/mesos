@@ -297,7 +297,9 @@ Try<Nothing> initModules(const Option<Modules>& modules)
   // Add MasterDetector module from testmasterdetector library.
   addMasterDetectorModules(&mergedModules);
 
-  return ModuleManager::load(mergedModules);
+  master::Flags flags;
+  flags.modules = mergedModules;
+  return ModuleManager::initialize(flags);
 }
 
 

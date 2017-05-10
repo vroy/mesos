@@ -27,7 +27,13 @@
 #include <mesos/mesos.hpp>
 #include <mesos/module.hpp>
 
+#include <mesos/master/flags.hpp>
+
 #include <mesos/module/module.hpp>
+
+#include <mesos/sched/flags.hpp>
+
+#include <mesos/slave/flags.hpp>
 
 #include <process/owned.hpp>
 
@@ -64,14 +70,9 @@ public:
   //
   // NOTE: If loading fails at a particular library we don't unload
   // all of the already loaded libraries.
-  static Try<Nothing> load(const Modules& modules)
-  {
-    return loadManifest(modules);
-  }
-
-  // NOTE: If loading fails at a particular library we don't unload
-  // all of the already loaded libraries.
-  static Try<Nothing> load(const std::string& modulesDir);
+  static Try<Nothing> initialize(const internal::master::Flags& flags);
+  static Try<Nothing> initialize(const internal::slave::Flags& flags);
+  static Try<Nothing> initialize(const internal::sched::Flags& flags);
 
   // create() should be called only after load().
   template <typename T>
@@ -146,10 +147,16 @@ public:
   // module  and remove it from the list of ModuleBases.
   static Try<Nothing> unload(const std::string& moduleName);
 
-private:
-  static void initialize();
+  static Try<Nothing> load(const std::string& modulesDir);
 
+  static Try<Nothing> load(const Modules& modules);
   static Try<Nothing> loadManifest(const Modules& modules);
+
+private:
+  static Try<Nothing> initialize(
+      const Option<internal::master::Flags>& masterFlags,
+      const Option<internal::slave::Flags>& slaveFlags,
+      const Option<internal::sched::Flags>& schedFlags);
 
   static Try<Nothing> verifyModule(
       const std::string& moduleName,
@@ -188,6 +195,11 @@ private:
 
   // Module to library name mapping.
   static hashmap<std::string, std::string> moduleLibraries;
+
+  // Master and slave flags.
+  static Option<internal::master::Flags> masterFlags;
+  static Option<internal::slave::Flags> slaveFlags;
+  static Option<internal::sched::Flags> schedFlags;
 };
 
 } // namespace modules {

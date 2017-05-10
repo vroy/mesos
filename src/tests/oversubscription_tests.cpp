@@ -123,7 +123,9 @@ protected:
     parameter->set_key("resources");
     parameter->set_value(resources);
 
-    ASSERT_SOME(modules::ModuleManager::load(modules));
+    master::Flags flags;
+    flags.modules = modules;
+    ASSERT_SOME(modules::ModuleManager::initialize(flags));
   }
 
   // TODO(vinod): Make this a global helper that other tests (e.g.,
