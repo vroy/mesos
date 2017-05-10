@@ -65,7 +65,7 @@ using namespace mesos::internal::protobuf;
 
 using mesos::internal::master::Master;
 
-using mesos::internal::scheduler::DEFAULT_REGISTRATION_BACKOFF_FACTOR;
+using mesos::internal::sched::DEFAULT_REGISTRATION_BACKOFF_FACTOR;
 
 using mesos::internal::slave::Slave;
 

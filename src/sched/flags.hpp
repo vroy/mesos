@@ -29,7 +29,7 @@
 
 namespace mesos {
 namespace internal {
-namespace scheduler {
+namespace sched {
 
 class Flags : public virtual logging::Flags
 {
@@ -133,7 +133,7 @@ public:
   Duration authentication_timeout;
 };
 
-} // namespace scheduler {
+} // namespace sched {
 } // namespace internal {
 } // namespace mesos {
 

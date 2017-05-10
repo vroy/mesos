@@ -197,7 +197,7 @@ public:
                    bool _implicitAcknowledgements,
                    const string& schedulerId,
                    MasterDetector* _detector,
-                   const internal::scheduler::Flags& _flags,
+                   const internal::sched::Flags& _flags,
                    std::recursive_mutex* _mutex,
                    Latch* _latch)
       // We use a UUID here to ensure that the master can reliably
@@ -411,7 +411,7 @@ protected:
 
     CHECK(authenticatee == nullptr);
 
-    if (flags.authenticatee == scheduler::DEFAULT_AUTHENTICATEE) {
+    if (flags.authenticatee == sched::DEFAULT_AUTHENTICATEE) {
       LOG(INFO) << "Using default CRAM-MD5 authenticatee";
       authenticatee = new cram_md5::CRAMMD5Authenticatee();
     } else {
@@ -492,7 +492,7 @@ protected:
       // `REGISTER_RETRY_INTERVAL_MAX`.
       Duration backoff = flags.authentication_backoff_factor *
                          std::pow(2, failedAuthentications);
-      backoff = std::min(backoff, scheduler::AUTHENTICATION_RETRY_INTERVAL_MAX);
+      backoff = std::min(backoff, sched::AUTHENTICATION_RETRY_INTERVAL_MAX);
 
       // Determine the delay for next attempt by picking a random
       // duration between 0 and 'maxBackoff'.
@@ -851,7 +851,7 @@ protected:
 
     // Bound the maximum backoff by 'REGISTRATION_RETRY_INTERVAL_MAX'.
     maxBackoff =
-      std::min(maxBackoff, scheduler::REGISTRATION_RETRY_INTERVAL_MAX);
+      std::min(maxBackoff, sched::REGISTRATION_RETRY_INTERVAL_MAX);
 
     // If failover timeout is present, bound the maximum backoff
     // by 1/10th of the failover timeout.
@@ -1664,7 +1664,7 @@ private:
 
   MasterDetector* detector;
 
-  const internal::scheduler::Flags flags;
+  const internal::sched::Flags flags;
 
   // Timer for triggering registration of the framework with the master.
   process::Timer frameworkRegistrationTimer;
@@ -1937,7 +1937,7 @@ Status MesosSchedulerDriver::start()
     }
 
     // Load scheduler flags.
-    internal::scheduler::Flags flags;
+    internal::sched::Flags flags;
     Try<flags::Warnings> load = flags.load("MESOS_");
 
     if (load.isError()) {

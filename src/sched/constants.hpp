@@ -21,7 +21,7 @@
 
 namespace mesos {
 namespace internal {
-namespace scheduler {
+namespace sched {
 
 // Default backoff interval used by the scheduler driver to wait
 // before registration.
@@ -52,7 +52,7 @@ constexpr char DEFAULT_AUTHENTICATEE[] = "crammd5";
 // Default value for `--authentication_timeout`.
 constexpr Duration DEFAULT_AUTHENTICATION_TIMEOUT = Seconds(5);
 
-} // namespace scheduler {
+} // namespace sched {
 } // namespace internal {
 } // namespace mesos {
 
