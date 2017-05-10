@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include <mesos/mesos.hpp>
+
 #include <process/future.hpp>
 #include <process/owned.hpp>
 #include <process/shared.hpp>
@@ -72,7 +74,8 @@ public:
      */
     virtual process::Future<Nothing> fetch(
         const URI& uri,
-        const std::string& directory) const = 0;
+        const std::string& directory,
+        const Option<Secret::Value>& secretValue = None()) const = 0;
   };
 
   /**
@@ -92,7 +95,8 @@ public:
   // TODO(jieyu): Consider using 'Path' for 'directory' here.
   process::Future<Nothing> fetch(
       const URI& uri,
-      const std::string& directory) const;
+      const std::string& directory,
+      const Option<Secret::Value>& secretValue = None()) const;
 
   /**
    * Fetches a URI to the given directory. This method will dispatch
@@ -105,7 +109,8 @@ public:
   process::Future<Nothing> fetch(
       const URI& uri,
       const std::string& directory,
-      const std::string& name) const;
+      const std::string& name,
+      const Option<Secret::Value>& secretValue = None()) const;
 
 private:
   Fetcher(const Fetcher&) = delete; // Not copyable.

@@ -57,7 +57,8 @@ public:
 
   virtual process::Future<Nothing> fetch(
       const URI& uri,
-      const std::string& directory) const;
+      const std::string& directory,
+      const Option<Secret::Value>& secretValue = None()) const;
 
 private:
   HadoopFetcherPlugin(

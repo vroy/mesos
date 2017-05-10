@@ -78,7 +78,8 @@ string HadoopFetcherPlugin::name() const
 
 Future<Nothing> HadoopFetcherPlugin::fetch(
     const URI& uri,
-    const string& directory) const
+    const string& directory,
+    const Option<Secret::Value>& secretValue) const
 {
   // TODO(jieyu): Validate the given URI.
 
