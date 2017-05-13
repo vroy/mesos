@@ -70,7 +70,7 @@ struct Module<TestModule> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      TestModule* (*_create)(const Parameters& parameters))
+      TestModule* (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -81,7 +81,7 @@ struct Module<TestModule> : ModuleBase
         _compatible),
       create(_create) {}
 
-  TestModule* (*create)(const Parameters& parameters);
+  TestModule* (*create)(const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

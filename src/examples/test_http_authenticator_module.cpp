@@ -31,13 +31,15 @@ using namespace mesos;
 
 using mesos::http::authentication::BasicAuthenticatorFactory;
 
+using mesos::modules::ModuleInfo;
+
 using process::http::authentication::Authenticator;
 
 
-static Authenticator* createHttpAuthenticator(const Parameters& parameters)
+static Authenticator* createHttpAuthenticator(const ModuleInfo& moduleInfo)
 {
   Try<Authenticator*> authenticator =
-    BasicAuthenticatorFactory::create(parameters);
+    BasicAuthenticatorFactory::create(moduleInfo.parameters);
 
   if (authenticator.isError()) {
     LOG(ERROR) << "Failed to create basic HTTP authenticator: "

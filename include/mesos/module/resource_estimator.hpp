@@ -43,7 +43,7 @@ struct Module<mesos::slave::ResourceEstimator> : ModuleBase
       const char* _description,
       bool (*_compatible)(),
       mesos::slave::ResourceEstimator*
-        (*_create)(const Parameters& parameters))
+        (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +54,7 @@ struct Module<mesos::slave::ResourceEstimator> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::slave::ResourceEstimator* (*create)(const Parameters& parameters);
+  mesos::slave::ResourceEstimator* (*create)(const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

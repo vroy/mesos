@@ -314,10 +314,10 @@ org_apache_mesos_LogrotateContainerLogger(
     "modules@mesos.apache.org",
     "Logrotate Container Logger module.",
     nullptr,
-    [](const Parameters& parameters) -> ContainerLogger* {
+    [](const modules::ModuleInfo& moduleInfo) -> ContainerLogger* {
       // Convert `parameters` into a map.
       map<string, string> values;
-      foreach (const Parameter& parameter, parameters.parameter()) {
+      foreach (const Parameter& parameter, moduleInfo.parameters.parameter()) {
         values[parameter.key()] = parameter.value();
       }
 

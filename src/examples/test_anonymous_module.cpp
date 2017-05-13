@@ -28,6 +28,7 @@
 using namespace mesos;
 
 using mesos::modules::Anonymous;
+using mesos::modules::ModuleInfo;
 
 class TestAnonymous : public Anonymous
 {
@@ -48,7 +49,7 @@ public:
 };
 
 
-static Anonymous* createAnonymous(const Parameters& parameters)
+static Anonymous* createAnonymous(const ModuleInfo& moduleInfo)
 {
   return new TestAnonymous();
 }

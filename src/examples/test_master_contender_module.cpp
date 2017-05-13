@@ -38,6 +38,6 @@ mesos::modules::Module<MasterContender> org_apache_mesos_TestMasterContender(
     "modules@mesos.apache.org",
     "Test MasterContender module.",
     nullptr,
-    [](const Parameters& parameters) -> MasterContender* {
+    [](const mesos::modules::ModuleInfo& moduleInfo) -> MasterContender* {
       return new StandaloneMasterContender();
     });

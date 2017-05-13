@@ -322,8 +322,8 @@ TEST_F(ModuleTest, ValidParameters)
 }
 
 
-// Tests overriding of module parameters programatically.
-TEST_F(ModuleTest, OverrideJson)
+// Tests merging of module parameters programatically.
+TEST_F(ModuleTest, MergeParameters)
 {
   Modules modules = getModules(
       DEFAULT_MODULE_LIBRARY_NAME,
@@ -342,10 +342,15 @@ TEST_F(ModuleTest, OverrideJson)
   EXPECT_SOME(module);
 
   parameters = module.get()->parameters();
+  EXPECT_EQ(2, parameters.parameter_size());
 
-  EXPECT_EQ(1, parameters.parameter_size());
+  // Parameters specified in module manifest should come first.
   EXPECT_EQ("foo", parameters.parameter(0).key());
   EXPECT_EQ("foovalue", parameters.parameter(0).value());
+
+  // Parameters passed to create should come last.
+  EXPECT_EQ("operation", parameters.parameter(1).key());
+  EXPECT_EQ("sum", parameters.parameter(1).value());
 }
 
 

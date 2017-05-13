@@ -43,7 +43,7 @@ struct Module<mesos::slave::Isolator> : ModuleBase
       const char* _description,
       bool (*_compatible)(),
       mesos::slave::Isolator*
-        (*_create)(const Parameters& parameters))
+        (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +54,7 @@ struct Module<mesos::slave::Isolator> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::slave::Isolator* (*create)(const Parameters& parameters);
+  mesos::slave::Isolator* (*create)(const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

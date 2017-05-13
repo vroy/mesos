@@ -60,7 +60,7 @@ struct Module<Anonymous> : ModuleBase
          const char* _authorEmail,
          const char* _description,
          bool (*_compatible)(),
-         Anonymous* (*_create)(const Parameters& parameters))
+         Anonymous* (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(_moduleApiVersion,
                  _mesosVersion,
                  mesos::modules::kind<Anonymous>(),
@@ -70,7 +70,7 @@ struct Module<Anonymous> : ModuleBase
                  _compatible),
       create(_create) {}
 
-  Anonymous* (*create)(const Parameters& parameters);
+  Anonymous* (*create)(const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

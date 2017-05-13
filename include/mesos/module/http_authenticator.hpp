@@ -43,7 +43,7 @@ struct Module<process::http::authentication::Authenticator> : ModuleBase
       const char* _description,
       bool (*_compatible)(),
       process::http::authentication::Authenticator* (*_create)(
-          const Parameters& parameters))
+          const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -55,7 +55,7 @@ struct Module<process::http::authentication::Authenticator> : ModuleBase
       create(_create) {}
 
   process::http::authentication::Authenticator* (*create)(
-      const Parameters& parameters);
+      const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

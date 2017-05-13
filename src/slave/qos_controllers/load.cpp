@@ -41,6 +41,7 @@ using namespace process;
 using std::list;
 
 using mesos::modules::Module;
+using mesos::modules::ModuleInfo;
 
 using mesos::slave::QoSController;
 using mesos::slave::QoSCorrection;
@@ -172,13 +173,13 @@ process::Future<list<QoSCorrection>> LoadQoSController::corrections()
 } // namespace mesos {
 
 
-static QoSController* create(const Parameters& parameters)
+static QoSController* create(const ModuleInfo& moduleInfo)
 {
   // Obtain the system load threshold from parameters.
   Option<double> loadThreshold5Min = None();
   Option<double> loadThreshold15Min = None();
 
-  foreach (const Parameter& parameter, parameters.parameter()) {
+  foreach (const Parameter& parameter, moduleInfo.parameters.parameter()) {
     if (parameter.key() == "load_threshold_5min") {
       // Try to parse the load 5min value.
       Try<double> thresholdParam = numify<double>(parameter.value());

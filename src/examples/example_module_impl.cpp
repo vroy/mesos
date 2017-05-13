@@ -95,10 +95,10 @@ static bool compatible()
 }
 
 
-static TestModule* create(const mesos::Parameters& parameters)
+static TestModule* create(const mesos::modules::ModuleInfo& moduleInfo)
 {
   TestModule *testModule = new TestModuleImpl();
-  Try<Nothing> result = testModule->initialize(parameters);
+  Try<Nothing> result = testModule->initialize(moduleInfo.parameters);
   if (result.isError()) {
     delete testModule;
     // TODO(karya): make the return type Try<TestModule*> to pass the

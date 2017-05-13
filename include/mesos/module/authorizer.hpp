@@ -41,7 +41,7 @@ struct Module<mesos::Authorizer> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::Authorizer* (*_create)(const Parameters& parameters))
+      mesos::Authorizer* (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -52,7 +52,7 @@ struct Module<mesos::Authorizer> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::Authorizer* (*create)(const Parameters& parameters);
+  mesos::Authorizer* (*create)(const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

@@ -41,7 +41,7 @@ struct Module<mesos::Authenticator> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::Authenticator* (*_create)(const Parameters& parameters))
+      mesos::Authenticator* (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -52,7 +52,7 @@ struct Module<mesos::Authenticator> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::Authenticator* (*create)(const Parameters& parameters);
+  mesos::Authenticator* (*create)(const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

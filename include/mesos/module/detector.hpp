@@ -43,7 +43,7 @@ struct Module<mesos::master::detector::MasterDetector> : ModuleBase
       const char* _description,
       bool (*_compatible)(),
       mesos::master::detector::MasterDetector*
-        (*_create)(const Parameters& parameters))
+        (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -55,7 +55,7 @@ struct Module<mesos::master::detector::MasterDetector> : ModuleBase
       create(_create) {}
 
   mesos::master::detector::MasterDetector* (*create)(
-      const Parameters& parameters);
+      const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

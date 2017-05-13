@@ -32,6 +32,8 @@ using mesos::internal::slave::Flags;
 using mesos::internal::slave::PosixCpuIsolatorProcess;
 using mesos::internal::slave::PosixMemIsolatorProcess;
 
+using mesos::modules::ModuleInfo;
+
 using mesos::slave::Isolator;
 
 
@@ -43,7 +45,7 @@ static bool compatible()
 }
 
 
-static Isolator* createCpuIsolator(const Parameters& parameters)
+static Isolator* createCpuIsolator(const ModuleInfo& moduleInfo)
 {
   Flags flags;
   Try<Isolator*> result = PosixCpuIsolatorProcess::create(flags);
@@ -54,7 +56,7 @@ static Isolator* createCpuIsolator(const Parameters& parameters)
 }
 
 
-static Isolator* createMemIsolator(const Parameters& parameters)
+static Isolator* createMemIsolator(const ModuleInfo& moduleInfo)
 {
   Flags flags;
   Try<Isolator*> result = PosixMemIsolatorProcess::create(flags);

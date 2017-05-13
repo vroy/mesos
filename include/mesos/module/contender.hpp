@@ -43,7 +43,7 @@ struct Module<mesos::master::contender::MasterContender> : ModuleBase
       const char* _description,
       bool (*_compatible)(),
       mesos::master::contender::MasterContender*
-        (*_create)(const Parameters& parameters))
+        (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -55,7 +55,7 @@ struct Module<mesos::master::contender::MasterContender> : ModuleBase
       create(_create) {}
 
   mesos::master::contender::MasterContender* (*create)(
-      const Parameters& parameters);
+      const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

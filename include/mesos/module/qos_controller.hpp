@@ -43,7 +43,7 @@ struct Module<mesos::slave::QoSController> : ModuleBase
       const char* _description,
       bool (*_compatible)(),
       mesos::slave::QoSController*
-        (*_create)(const Parameters& parameters))
+        (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +54,7 @@ struct Module<mesos::slave::QoSController> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::slave::QoSController* (*create)(const Parameters& parameters);
+  mesos::slave::QoSController* (*create)(const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

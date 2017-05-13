@@ -101,9 +101,16 @@ public:
             "kind is '" + expectedKind + "'");
       }
 
-      T* instance =
-        module->create(
-            params.isSome() ? params.get() : moduleParameters[moduleName]);
+      ModuleInfo moduleInfo(moduleParameters[moduleName]);
+      if (params.isSome()) {
+        moduleInfo.parameters.MergeFrom(params.get());
+      }
+
+      moduleInfo.masterFlags = masterFlags;
+      moduleInfo.slaveFlags = slaveFlags;
+      moduleInfo.schedFlags = schedFlags;
+
+      T* instance = module->create(moduleInfo);
       if (instance == nullptr) {
         return Error("Error creating Module instance for '" + moduleName + "'");
       }

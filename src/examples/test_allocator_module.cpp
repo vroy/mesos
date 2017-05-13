@@ -31,9 +31,10 @@ using namespace mesos;
 
 using mesos::allocator::Allocator;
 using mesos::internal::master::allocator::HierarchicalDRFAllocator;
+using mesos::modules::ModuleInfo;
 
 
-static Allocator* createDRFAllocator(const Parameters& parameters)
+static Allocator* createDRFAllocator(const ModuleInfo& moduleInfo)
 {
   Try<Allocator*> allocator = HierarchicalDRFAllocator::create();
   if (allocator.isError()) {

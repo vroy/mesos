@@ -29,9 +29,11 @@ using namespace mesos;
 
 using mesos::internal::slave::NoopQoSController;
 
+using mesos::modules::ModuleInfo;
+
 using mesos::slave::QoSController;
 
-static QoSController* createQoSController(const Parameters& parameters)
+static QoSController* createQoSController(const ModuleInfo& moduleInfo)
 {
   Try<QoSController*> result = NoopQoSController::create(None());
   if (result.isError()) {

@@ -353,7 +353,7 @@ public:
 };
 
 
-static Hook* createHook(const Parameters& parameters)
+static Hook* createHook(const mesos::modules::ModuleInfo& moduleInfo)
 {
   return new TestHook();
 }

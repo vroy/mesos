@@ -37,9 +37,12 @@ using std::string;
 
 using namespace mesos;
 
-static Authorizer* createLocalAuthorizer(const Parameters& parameters)
+using mesos::modules::ModuleInfo;
+
+static Authorizer* createLocalAuthorizer(const ModuleInfo& moduleInfo)
 {
-  Try<Authorizer*> local = mesos::internal::LocalAuthorizer::create(parameters);
+  Try<Authorizer*> local =
+    mesos::internal::LocalAuthorizer::create(moduleInfo.parameters);
   if (local.isError()) {
     return nullptr;
   }

@@ -42,12 +42,37 @@
 //    fields (including pointers to 'create' and 'compatible').  The
 //    variable name thus becomes the module name.
 
-#include <mesos/version.hpp>
+#include <mesos/mesos.hpp>
 
-#define MESOS_MODULE_API_VERSION "2"
+#include <mesos/master/flags.hpp>
+#include <mesos/sched/flags.hpp>
+#include <mesos/slave/flags.hpp>
+
+#include <stout/option.hpp>
+
+#define MESOS_MODULE_API_VERSION "3"
 
 namespace mesos {
 namespace modules {
+
+struct ModuleInfo
+{
+  ModuleInfo(
+      const Parameters& parameters,
+      const Option<internal::master::Flags> masterFlags = None(),
+      const Option<internal::slave::Flags> slaveFlags = None(),
+      const Option<internal::sched::Flags> schedFlags = None())
+    : parameters(parameters),
+      masterFlags(masterFlags),
+      slaveFlags(slaveFlags),
+      schedFlags(schedFlags) {}
+
+  Parameters parameters;
+  Option<internal::master::Flags> masterFlags;
+  Option<internal::slave::Flags> slaveFlags;
+  Option<internal::sched::Flags> schedFlags;
+};
+
 
 // Internal utilities, not part of the module API:
 

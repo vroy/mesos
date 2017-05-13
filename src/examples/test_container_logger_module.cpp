@@ -29,6 +29,8 @@ using namespace mesos;
 
 using mesos::internal::slave::SandboxContainerLogger;
 
+using mesos::modules::ModuleInfo;
+
 using mesos::slave::ContainerLogger;
 
 
@@ -42,7 +44,7 @@ org_apache_mesos_TestSandboxContainerLogger(
     "modules@mesos.apache.org",
     "Test Sandbox Container Logger module.",
     nullptr,
-    [](const Parameters& paramters) -> ContainerLogger* {
+    [](const ModuleInfo& moduleInfo) -> ContainerLogger* {
       Try<ContainerLogger*> result = SandboxContainerLogger::create(None());
 
       if (result.isError()) {

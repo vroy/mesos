@@ -43,7 +43,7 @@ struct Module<mesos::SecretGenerator> : ModuleBase
       const char* _description,
       bool (*_compatible)(),
       mesos::http::authentication::SecretGenerator* (*_create)(
-          const Parameters& parameters))
+          const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -55,7 +55,7 @@ struct Module<mesos::SecretGenerator> : ModuleBase
       create(_create) {}
 
   mesos::SecretGenerator* (*create)(
-      const Parameters& parameters);
+      const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

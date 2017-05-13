@@ -31,9 +31,11 @@ using namespace mesos;
 
 using mesos::internal::slave::NoopResourceEstimator;
 
+using mesos::modules::ModuleInfo;
+
 using mesos::slave::ResourceEstimator;
 
-static ResourceEstimator* createResourceEstimator(const Parameters& parameters)
+static ResourceEstimator* createResourceEstimator(const ModuleInfo& moduleInfo)
 {
   Try<ResourceEstimator*> result =
     NoopResourceEstimator::create(None());

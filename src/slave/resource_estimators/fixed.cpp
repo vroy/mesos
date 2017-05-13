@@ -30,6 +30,7 @@ using namespace mesos;
 using namespace process;
 
 using mesos::modules::Module;
+using mesos::modules::ModuleInfo;
 
 using mesos::slave::ResourceEstimator;
 
@@ -129,11 +130,11 @@ static bool compatible()
 }
 
 
-static ResourceEstimator* create(const Parameters& parameters)
+static ResourceEstimator* create(const ModuleInfo& moduleInfo)
 {
   // Obtain the *fixed* resources from parameters.
   Option<Resources> resources;
-  foreach (const Parameter& parameter, parameters.parameter()) {
+  foreach (const Parameter& parameter, moduleInfo.parameters.parameter()) {
     if (parameter.key() == "resources") {
       Try<Resources> _resources = Resources::parse(parameter.value());
       if (_resources.isError()) {
