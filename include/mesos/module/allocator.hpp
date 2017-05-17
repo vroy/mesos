@@ -22,6 +22,8 @@
 
 #include <mesos/allocator/allocator.hpp>
 
+#include <process/owned.hpp>
+
 namespace mesos {
 namespace modules {
 
@@ -42,8 +44,8 @@ struct Module<mesos::allocator::Allocator> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::allocator::Allocator*
-        (*_create)(const ModuleInfo& moduleInfo))
+      Try<process::Owned<mesos::allocator::Allocator>> (*_create)(
+          const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +56,8 @@ struct Module<mesos::allocator::Allocator> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::allocator::Allocator* (*create)(const ModuleInfo& moduleInfo);
+  Try<process::Owned<mesos::allocator::Allocator>> (*create)(
+      const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

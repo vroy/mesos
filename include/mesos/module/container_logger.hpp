@@ -22,6 +22,8 @@
 
 #include <mesos/slave/container_logger.hpp>
 
+#include <process/owned.hpp>
+
 namespace mesos {
 namespace modules {
 
@@ -42,8 +44,8 @@ struct Module<mesos::slave::ContainerLogger> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::slave::ContainerLogger*
-        (*_create)(const ModuleInfo& moduleInfo))
+      Try<process::Owned<mesos::slave::ContainerLogger>> (*_create)(
+          const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +56,8 @@ struct Module<mesos::slave::ContainerLogger> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::slave::ContainerLogger* (*create)(const ModuleInfo& moduleInfo);
+  Try<process::Owned<mesos::slave::ContainerLogger>> (*create)(
+      const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

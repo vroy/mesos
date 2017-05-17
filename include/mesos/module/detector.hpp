@@ -22,6 +22,8 @@
 
 #include <mesos/master/detector.hpp>
 
+#include <process/owned.hpp>
+
 namespace mesos {
 namespace modules {
 
@@ -42,8 +44,8 @@ struct Module<mesos::master::detector::MasterDetector> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::master::detector::MasterDetector*
-        (*_create)(const ModuleInfo& moduleInfo))
+      Try<process::Owned<mesos::master::detector::MasterDetector>> (*_create)(
+          const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +56,7 @@ struct Module<mesos::master::detector::MasterDetector> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::master::detector::MasterDetector* (*create)(
+  Try<process::Owned<mesos::master::detector::MasterDetector>> (*create)(
       const ModuleInfo& moduleInfo);
 };
 

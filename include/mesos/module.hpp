@@ -30,8 +30,8 @@
 //             "modules": [<module name>, ...]}
 //
 // How to write a module library:
-// 1. Define a create() function that returns a pointer to an object
-//    of 'kind' type.
+// 1. Define a create() function with the following signature:
+//      Try<process::Own<T>> create(const ModuleInfo& moduleInfo)
 // 2. If you want to indicate backwards compatibility for a module,
 //    create:
 //      'bool compatible() { return true; }

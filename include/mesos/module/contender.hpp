@@ -22,6 +22,8 @@
 
 #include <mesos/master/contender.hpp>
 
+#include <process/owned.hpp>
+
 namespace mesos {
 namespace modules {
 
@@ -42,8 +44,8 @@ struct Module<mesos::master::contender::MasterContender> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::master::contender::MasterContender*
-        (*_create)(const ModuleInfo& moduleInfo))
+      Try<process::Owned<mesos::master::contender::MasterContender>> (*_create)(
+          const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +56,7 @@ struct Module<mesos::master::contender::MasterContender> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::master::contender::MasterContender* (*create)(
+  Try<process::Owned<mesos::master::contender::MasterContender>> (*create)(
       const ModuleInfo& moduleInfo);
 };
 

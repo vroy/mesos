@@ -21,6 +21,7 @@
 #include <mesos/module.hpp>
 
 #include <process/authenticator.hpp>
+#include <process/owned.hpp>
 
 namespace mesos {
 namespace modules {
@@ -42,8 +43,8 @@ struct Module<process::http::authentication::Authenticator> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      process::http::authentication::Authenticator* (*_create)(
-          const ModuleInfo& moduleInfo))
+      Try<process::Owned<process::http::authentication::Authenticator>>
+        (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +55,7 @@ struct Module<process::http::authentication::Authenticator> : ModuleBase
         _compatible),
       create(_create) {}
 
-  process::http::authentication::Authenticator* (*create)(
+  Try<process::Owned<process::http::authentication::Authenticator>> (*create)(
       const ModuleInfo& moduleInfo);
 };
 

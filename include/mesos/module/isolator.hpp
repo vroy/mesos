@@ -22,6 +22,8 @@
 
 #include <mesos/slave/isolator.hpp>
 
+#include <process/owned.hpp>
+
 namespace mesos {
 namespace modules {
 
@@ -42,8 +44,8 @@ struct Module<mesos::slave::Isolator> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::slave::Isolator*
-        (*_create)(const ModuleInfo& moduleInfo))
+      Try<process::Owned<mesos::slave::Isolator>> (*_create)(
+          const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +56,8 @@ struct Module<mesos::slave::Isolator> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::slave::Isolator* (*create)(const ModuleInfo& moduleInfo);
+  Try<process::Owned<mesos::slave::Isolator>> (*create)(
+      const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

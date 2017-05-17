@@ -76,7 +76,7 @@ public:
 
   // create() should be called only after load().
   template <typename T>
-  static Try<T*> create(
+  static Try<process::Owned<T>> create(
       const std::string& moduleName,
       const Option<Parameters>& params = None())
   {
@@ -110,11 +110,13 @@ public:
       moduleInfo.slaveFlags = slaveFlags;
       moduleInfo.schedFlags = schedFlags;
 
-      T* instance = module->create(moduleInfo);
-      if (instance == nullptr) {
-        return Error("Error creating Module instance for '" + moduleName + "'");
+      Try<process::Owned<T>> instance = module->create(moduleInfo);
+      if (instance.isError()) {
+        return Error(
+            "Error creating Module instance for '" + moduleName + "': " +
+            instance.error());
       }
-      return instance;
+      return std::move(instance.get());
     }
   }
 

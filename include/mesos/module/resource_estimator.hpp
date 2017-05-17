@@ -22,6 +22,8 @@
 
 #include <mesos/slave/resource_estimator.hpp>
 
+#include <process/owned.hpp>
+
 namespace mesos {
 namespace modules {
 
@@ -42,8 +44,8 @@ struct Module<mesos::slave::ResourceEstimator> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::slave::ResourceEstimator*
-        (*_create)(const ModuleInfo& moduleInfo))
+      Try<process::Owned<mesos::slave::ResourceEstimator>> (*_create)(
+          const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +56,8 @@ struct Module<mesos::slave::ResourceEstimator> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::slave::ResourceEstimator* (*create)(const ModuleInfo& moduleInfo);
+  Try<process::Owned<mesos::slave::ResourceEstimator>> (*create)(
+      const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

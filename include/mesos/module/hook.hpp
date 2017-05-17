@@ -21,6 +21,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/module.hpp>
 
+#include <process/owned.hpp>
+
 namespace mesos {
 namespace modules {
 
@@ -41,7 +43,7 @@ struct Module<mesos::Hook> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::Hook* (*_create)(const ModuleInfo& moduleInfo))
+      Try<process::Owned<mesos::Hook>> (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -52,7 +54,7 @@ struct Module<mesos::Hook> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::Hook* (*create)(const ModuleInfo& moduleInfo);
+  Try<process::Owned<mesos::Hook>> (*create)(const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

@@ -22,6 +22,8 @@
 
 #include <mesos/authentication/secret_generator.hpp>
 
+#include <process/owned.hpp>
+
 namespace mesos {
 namespace modules {
 
@@ -42,8 +44,8 @@ struct Module<mesos::SecretGenerator> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      mesos::http::authentication::SecretGenerator* (*_create)(
-          const ModuleInfo& moduleInfo))
+      Try<process::Owned<mesos::http::authentication::SecretGenerator>>
+        (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -54,7 +56,7 @@ struct Module<mesos::SecretGenerator> : ModuleBase
         _compatible),
       create(_create) {}
 
-  mesos::SecretGenerator* (*create)(
+  Try<process::Owned<mesos::SecretGenerator>> (*create)(
       const ModuleInfo& moduleInfo);
 };
 

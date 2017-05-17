@@ -20,6 +20,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/module.hpp>
 
+#include <process/owned.hpp>
+
 namespace mesos {
 namespace modules {
 
@@ -54,13 +56,14 @@ inline const char* kind<Anonymous>()
 template <>
 struct Module<Anonymous> : ModuleBase
 {
-  Module(const char* _moduleApiVersion,
-         const char* _mesosVersion,
-         const char* _authorName,
-         const char* _authorEmail,
-         const char* _description,
-         bool (*_compatible)(),
-         Anonymous* (*_create)(const ModuleInfo& moduleInfo))
+  Module(
+      const char* _moduleApiVersion,
+      const char* _mesosVersion,
+      const char* _authorName,
+      const char* _authorEmail,
+      const char* _description,
+      bool (*_compatible)(),
+      Try<process::Owned<Anonymous>> (*_create)( const ModuleInfo& moduleInfo))
     : ModuleBase(_moduleApiVersion,
                  _mesosVersion,
                  mesos::modules::kind<Anonymous>(),
@@ -70,7 +73,7 @@ struct Module<Anonymous> : ModuleBase
                  _compatible),
       create(_create) {}
 
-  Anonymous* (*create)(const ModuleInfo& moduleInfo);
+  Try<process::Owned<Anonymous>> (*create)( const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {
