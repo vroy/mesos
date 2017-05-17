@@ -2388,7 +2388,8 @@ Future<Response> Slave::Http::waitNestedContainer(
       Executor* executor = slave->getExecutor(containerId);
       if (executor == nullptr) {
         return NotFound(
-            "Container " + stringify(containerId) + " cannot be found");
+            "Container " + stringify(containerId) +
+            " cannot be found (Executor not found)");
       }
 
       Framework* framework = slave->getFramework(executor->frameworkId);
@@ -2415,7 +2416,7 @@ Future<Response> Slave::Http::waitNestedContainer(
             const Option<ContainerTermination>& termination) -> Response {
           if (termination.isNone()) {
             return NotFound("Container " + stringify(containerId) +
-                            " cannot be found");
+                            " cannot be found (containerizer returned None)");
           }
 
           mesos::agent::Response response;

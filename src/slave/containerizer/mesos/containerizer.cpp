@@ -2020,11 +2020,17 @@ Future<Connection> MesosContainerizerProcess::attach(
 Future<Option<ContainerTermination>> MesosContainerizerProcess::wait(
     const ContainerID& containerId)
 {
+  LOG(WARNING) << "!!! waiting for: " << containerId;
+
   if (!containers_.contains(containerId)) {
+    LOG(WARNING) << "!!! Not in containers_: " << containerId;
+
     // If a container does not exist in our `container_` hashmap, it
     // may be a nested container with checkpointed termination
     // state. Attempt to return as such.
     if (containerId.has_parent()) {
+      LOG(WARNING) << "!!! containerId has parent: " << containerId;
+
       Result<ContainerTermination> termination =
         containerizer::paths::getContainerTermination(
             flags.runtime_dir,
@@ -2040,11 +2046,17 @@ Future<Option<ContainerTermination>> MesosContainerizerProcess::wait(
       }
     }
 
+    LOG(WARNING) << "!!! Not in containers_ and no termination found: "
+                 << containerId;
+
     // For all other cases return `None()`. See the comments in
     // `destroy()` for race conditions which lead to "unknown
     // containers".
     return None();
   }
+
+  LOG(WARNING) << "!!! In containers_, waiting for the termination: "
+               << containerId;
 
   return containers_.at(containerId)->termination.future()
     .then(Option<ContainerTermination>::some);
