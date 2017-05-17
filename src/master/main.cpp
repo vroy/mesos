@@ -32,7 +32,6 @@
 
 #include <mesos/logging/flags.hpp>
 
-#include <mesos/module/anonymous.hpp>
 #include <mesos/module/authorizer.hpp>
 
 #include <mesos/state/in_memory.hpp>
@@ -103,7 +102,6 @@ using mesos::master::contender::MasterContender;
 using mesos::master::detector::MasterDetector;
 using mesos::master::detector::StandaloneMasterDetector;
 
-using mesos::modules::Anonymous;
 using mesos::modules::ModuleManager;
 
 using mesos::state::InMemoryStorage;
@@ -140,9 +138,9 @@ int main(int argc, char** argv)
   // * Version process.
   // * Firewall rules: should be initialized before initializing HTTP endpoints.
   // * Modules: Load module libraries and manifests before they
-  //   can be instantiated.
-  // * Anonymous modules: Later components such as Allocators, and master
-  //   contender/detector might depend upon anonymous modules.
+  //   can be instantiated and initialize anonymous modules. Later components
+  //   such as Allocators, and master contender/detector might depend upon
+  //   anonymous modules.
   // * Hooks.
   // * Allocator.
   // * Registry storage.
@@ -285,23 +283,6 @@ int main(int argc, char** argv)
   Try<Nothing> modules = ModuleManager::initialize(flags);
   if (modules.isError()) {
     EXIT(EXIT_FAILURE) << "Error initializing modules: " << modules.error();
-  }
-
-  // Create anonymous modules.
-  foreach (const string& name, ModuleManager::find<Anonymous>()) {
-    Try<Anonymous*> create = ModuleManager::create<Anonymous>(name);
-    if (create.isError()) {
-      EXIT(EXIT_FAILURE)
-        << "Failed to create anonymous module named '" << name << "'";
-    }
-
-    // We don't bother keeping around the pointer to this anonymous
-    // module, when we exit that will effectively free its memory.
-    //
-    // TODO(benh): We might want to add explicit finalization (and
-    // maybe explicit initialization too) in order to let the module
-    // do any housekeeping necessary when the master is cleanly
-    // terminating.
   }
 
   // Initialize hooks.

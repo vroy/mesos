@@ -55,6 +55,8 @@ hashmap<string, Parameters> ModuleManager::moduleParameters;
 hashmap<string, string> ModuleManager::moduleLibraries;
 hashmap<string, DynamicLibrary*> ModuleManager::dynamicLibraries;
 
+vector<Owned<Anonymous>> anonymousModules;
+
 Option<master::Flags> ModuleManager::masterFlags = None();
 Option<slave::Flags> ModuleManager::slaveFlags = None();
 Option<sched::Flags> ModuleManager::schedFlags = None();
@@ -171,6 +173,15 @@ Try<Nothing> ModuleManager::initialize(
     if (result.isError()) {
       return Error("Error loading modules: " + result.error());
     }
+  }
+
+  // Create anonymous modules.
+  foreach (const string& name, find<Anonymous>()) {
+    Try<Anonymous*> anonymous = create<Anonymous>(name);
+    if (anonymous.isError()) {
+      return Error("Failed to create anonymous module named '" + name + "'");
+    }
+    anonymousModules.push_back(Owned<Anonymous>(anonymous.get()));
   }
 
   return Nothing();

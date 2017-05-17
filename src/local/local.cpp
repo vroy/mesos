@@ -27,7 +27,6 @@
 
 #include <mesos/logging/flags.hpp>
 
-#include <mesos/module/anonymous.hpp>
 #include <mesos/module/authorizer.hpp>
 #include <mesos/module/contender.hpp>
 #include <mesos/module/detector.hpp>
@@ -104,7 +103,6 @@ using mesos::internal::slave::GarbageCollector;
 using mesos::internal::slave::Slave;
 using mesos::internal::slave::StatusUpdateManager;
 
-using mesos::modules::Anonymous;
 using mesos::modules::ModuleManager;
 
 using mesos::slave::QoSController;
@@ -313,23 +311,6 @@ PID<Master> launch(const Flags& flags, Allocator* _allocator)
       }
 
       slaveRemovalLimiter = new RateLimiter(permits.get(), duration.get());
-    }
-
-    // Create anonymous modules.
-    foreach (const string& name, ModuleManager::find<Anonymous>()) {
-      Try<Anonymous*> create = ModuleManager::create<Anonymous>(name);
-      if (create.isError()) {
-        EXIT(EXIT_FAILURE)
-          << "Failed to create anonymous module named '" << name << "'";
-      }
-
-      // We don't bother keeping around the pointer to this anonymous
-      // module, when we exit that will effectively free its memory.
-      //
-      // TODO(benh): We might want to add explicit finalization (and
-      // maybe explicit initialization too) in order to let the module
-      // do any housekeeping necessary when the master is cleanly
-      // terminating.
     }
 
     master = new Master(
