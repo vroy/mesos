@@ -21,6 +21,8 @@
 
 #include <mesos/module/detector.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/try.hpp>
 
 #include "master/detector/standalone.hpp"
@@ -28,6 +30,8 @@
 using namespace mesos;
 using namespace mesos::master;
 using namespace mesos::master::detector;
+
+using process::Owned;
 
 // Declares a MasterDetector module named
 // 'org_apache_mesos_TestMasterDetector'.
@@ -38,6 +42,7 @@ mesos::modules::Module<MasterDetector> org_apache_mesos_TestMasterDetector(
     "modules@mesos.apache.org",
     "Test MasterDetector module.",
     nullptr,
-    [](const mesos::modules::ModuleInfo& moduleInfo) -> MasterDetector* {
-      return new StandaloneMasterDetector();
+    [](const mesos::modules::ModuleInfo& moduleInfo)
+        -> Try<Owned<MasterDetector>> {
+      return Owned<MasterDetector>(new StandaloneMasterDetector());
     });

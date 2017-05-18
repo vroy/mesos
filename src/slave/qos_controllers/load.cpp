@@ -173,7 +173,7 @@ process::Future<list<QoSCorrection>> LoadQoSController::corrections()
 } // namespace mesos {
 
 
-static QoSController* create(const ModuleInfo& moduleInfo)
+static Try<Owned<QoSController>> create(const ModuleInfo& moduleInfo)
 {
   // Obtain the system load threshold from parameters.
   Option<double> loadThreshold5Min = None();
@@ -184,9 +184,8 @@ static QoSController* create(const ModuleInfo& moduleInfo)
       // Try to parse the load 5min value.
       Try<double> thresholdParam = numify<double>(parameter.value());
       if (thresholdParam.isError()) {
-        LOG(ERROR) << "Failed to parse 5 min load threshold: "
-                   << thresholdParam.error();
-        return nullptr;
+        return Error(
+            "Failed to parse 5 min load threshold: " + thresholdParam.error());
       }
 
       loadThreshold5Min = thresholdParam.get();
@@ -194,9 +193,8 @@ static QoSController* create(const ModuleInfo& moduleInfo)
       // Try to parse the load 15min value.
       Try<double> thresholdParam = numify<double>(parameter.value());
       if (thresholdParam.isError()) {
-        LOG(ERROR) << "Failed to parse 15 min load threshold: "
-                   << thresholdParam.error();
-        return nullptr;
+        return Error(
+            "Failed to parse 15 min load threshold: " + thresholdParam.error());
       }
 
       loadThreshold15Min = thresholdParam.get();
@@ -204,12 +202,11 @@ static QoSController* create(const ModuleInfo& moduleInfo)
   }
 
   if (loadThreshold5Min.isNone() && loadThreshold15Min.isNone()) {
-    LOG(ERROR) << "No load thresholds are configured for LoadQoSController";
-    return nullptr;
+    return Error("No load thresholds are configured for LoadQoSController");
   }
 
-  return new mesos::internal::slave::LoadQoSController(
-      loadThreshold5Min, loadThreshold15Min);
+  return Owned<QoSController>(new mesos::internal::slave::LoadQoSController(
+      loadThreshold5Min, loadThreshold15Min));
 }
 
 

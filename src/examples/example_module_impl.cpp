@@ -18,11 +18,15 @@
 
 #include <mesos/module.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/hashmap.hpp>
 #include <stout/nothing.hpp>
 #include <stout/try.hpp>
 
 #include "test_module.hpp"
+
+using process::Owned;
 
 // Mesos core receives an object of type TestModuleImpl when
 // instantiating the module.  The object is then used to make calls
@@ -95,17 +99,16 @@ static bool compatible()
 }
 
 
-static TestModule* create(const mesos::modules::ModuleInfo& moduleInfo)
+static Try<Owned<TestModule>> create(
+    const mesos::modules::ModuleInfo& moduleInfo)
 {
   TestModule *testModule = new TestModuleImpl();
   Try<Nothing> result = testModule->initialize(moduleInfo.parameters);
   if (result.isError()) {
     delete testModule;
-    // TODO(karya): make the return type Try<TestModule*> to pass the
-    // error message as well.
-    return nullptr;
+    return Error("Error initializing TestModule: " + result.error());
   }
-  return testModule;
+  return Owned<TestModule>(testModule);
 }
 
 

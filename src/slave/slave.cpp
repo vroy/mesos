@@ -45,6 +45,7 @@
 #include <process/dispatch.hpp>
 #include <process/http.hpp>
 #include <process/id.hpp>
+#include <process/owned.hpp>
 #include <process/reap.hpp>
 #include <process/time.hpp>
 
@@ -995,7 +996,7 @@ void Slave::authenticate()
 #endif // HAS_AUTHENTICATION
 
   if (authenticatee == nullptr) {
-    Try<Authenticatee*> module =
+    Try<Owned<Authenticatee>> module =
       modules::ModuleManager::create<Authenticatee>(authenticateeName);
     if (module.isError()) {
       EXIT(EXIT_FAILURE)
@@ -1003,7 +1004,7 @@ void Slave::authenticate()
         << authenticateeName << "': " << module.error();
     }
     LOG(INFO) << "Using '" << authenticateeName << "' authenticatee";
-    authenticatee = module.get();
+    authenticatee = module->release();
   }
 
   CHECK_SOME(credential);

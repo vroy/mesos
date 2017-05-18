@@ -133,10 +133,10 @@ Try<Nothing> ModuleManager::initialize(
   // Mesos and among each other.  This is covered by their own
   // "isCompatible" call.
 
-  if (schedFlags.isSome()) {
-    CHECK(masterFlags.isNone() && slaveFlags.isNone());
+  if (_schedFlags.isSome()) {
+    CHECK(_masterFlags.isNone() && _slaveFlags.isNone());
   } else {
-    CHECK(masterFlags.isSome() ^ slaveFlags.isSome());
+    CHECK(_masterFlags.isSome() ^ _slaveFlags.isSome());
   }
 
   masterFlags = _masterFlags;
@@ -177,11 +177,11 @@ Try<Nothing> ModuleManager::initialize(
 
   // Create anonymous modules.
   foreach (const string& name, find<Anonymous>()) {
-    Try<Anonymous*> anonymous = create<Anonymous>(name);
+    Try<Owned<Anonymous>> anonymous = create<Anonymous>(name);
     if (anonymous.isError()) {
       return Error("Failed to create anonymous module named '" + name + "'");
     }
-    anonymousModules.push_back(Owned<Anonymous>(anonymous.get()));
+    anonymousModules.push_back(std::move(anonymous.get()));
   }
 
   return Nothing();

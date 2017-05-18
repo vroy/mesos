@@ -17,6 +17,7 @@
 #include <process/delay.hpp>
 #include <process/dispatch.hpp>
 #include <process/process.hpp>
+#include <process/owned.hpp>
 
 #include <stout/error.hpp>
 
@@ -41,7 +42,7 @@ Try<QoSController*> QoSController::create(const Option<string>& type)
   }
 
   // Try to load QoS Controller from module.
-  Try<QoSController*> module =
+  Try<process::Owned<QoSController>> module =
     modules::ModuleManager::create<QoSController>(type.get());
 
   if (module.isError()) {
@@ -50,7 +51,7 @@ Try<QoSController*> QoSController::create(const Option<string>& type)
         "': " + module.error());
   }
 
-  return module.get();
+  return module->release();
 }
 
 } // namespace slave {

@@ -24,6 +24,8 @@
 
 #include <mesos/module/authorizer.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/foreach.hpp>
 #include <stout/option.hpp>
 #include <stout/path.hpp>
@@ -37,17 +39,21 @@ using std::string;
 
 using namespace mesos;
 
+using process::Owned;
+
 using mesos::modules::ModuleInfo;
 
-static Authorizer* createLocalAuthorizer(const ModuleInfo& moduleInfo)
+static Try<Owned<Authorizer>> createLocalAuthorizer(
+    const ModuleInfo& moduleInfo)
 {
   Try<Authorizer*> local =
     mesos::internal::LocalAuthorizer::create(moduleInfo.parameters);
+
   if (local.isError()) {
-    return nullptr;
+    return Error("Error creating local authorizer: " + local.error());
   }
 
-  return local.get();
+  return Owned<Authorizer>(local.get());
 }
 
 

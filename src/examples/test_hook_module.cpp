@@ -22,6 +22,7 @@
 
 #include <process/future.hpp>
 #include <process/id.hpp>
+#include <process/owned.hpp>
 #include <process/process.hpp>
 #include <process/protobuf.hpp>
 
@@ -38,6 +39,7 @@ using std::string;
 
 using process::Failure;
 using process::Future;
+using process::Owned;
 
 // Must be kept in sync with variables of the same name in
 // tests/hook_tests.cpp.
@@ -353,9 +355,9 @@ public:
 };
 
 
-static Hook* createHook(const mesos::modules::ModuleInfo& moduleInfo)
+static Try<Owned<Hook>> createHook(const mesos::modules::ModuleInfo& moduleInfo)
 {
-  return new TestHook();
+  return Owned<Hook>(new TestHook());
 }
 
 

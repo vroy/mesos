@@ -21,6 +21,8 @@
 
 #include <mesos/slave/qos_controller.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/try.hpp>
 
 #include "slave/qos_controllers/noop.hpp"
@@ -33,13 +35,17 @@ using mesos::modules::ModuleInfo;
 
 using mesos::slave::QoSController;
 
-static QoSController* createQoSController(const ModuleInfo& moduleInfo)
+using process::Owned;
+
+static Try<Owned<QoSController>> createQoSController(
+    const ModuleInfo& moduleInfo)
 {
   Try<QoSController*> result = NoopQoSController::create(None());
   if (result.isError()) {
-    return nullptr;
+    return Error(
+        "Error creating noop QoS controller module: " + result.error());
   }
-  return result.get();
+  return Owned<QoSController>(result.get());
 }
 
 

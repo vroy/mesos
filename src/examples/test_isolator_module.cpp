@@ -22,6 +22,8 @@
 #include <mesos/slave/flags.hpp>
 #include <mesos/slave/isolator.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/try.hpp>
 
 #include "slave/containerizer/mesos/isolators/posix.hpp"
@@ -36,6 +38,7 @@ using mesos::modules::ModuleInfo;
 
 using mesos::slave::Isolator;
 
+using process::Owned;
 
 // The sole purpose of this function is just to exercise the
 // compatibility logic.
@@ -45,25 +48,25 @@ static bool compatible()
 }
 
 
-static Isolator* createCpuIsolator(const ModuleInfo& moduleInfo)
+static Try<Owned<Isolator>> createCpuIsolator(const ModuleInfo& moduleInfo)
 {
   Flags flags;
   Try<Isolator*> result = PosixCpuIsolatorProcess::create(flags);
   if (result.isError()) {
-    return nullptr;
+    return Error("Error creating Posix cpu isolator: " + result.error());
   }
-  return result.get();
+  return Owned<Isolator>(result.get());
 }
 
 
-static Isolator* createMemIsolator(const ModuleInfo& moduleInfo)
+static Try<Owned<Isolator>> createMemIsolator(const ModuleInfo& moduleInfo)
 {
   Flags flags;
   Try<Isolator*> result = PosixMemIsolatorProcess::create(flags);
   if (result.isError()) {
-    return nullptr;
+    return Error("Error creating Posix memory isolator: " + result.error());
   }
-  return result.get();
+  return Owned<Isolator>(result.get());
 }
 
 

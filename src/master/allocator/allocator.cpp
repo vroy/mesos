@@ -18,6 +18,8 @@
 
 #include <mesos/module/allocator.hpp>
 
+#include <process/owned.hpp>
+
 #include "master/constants.hpp"
 
 #include "master/allocator/mesos/hierarchical.hpp"
@@ -41,7 +43,15 @@ Try<Allocator*> Allocator::create(const string& name)
     return HierarchicalDRFAllocator::create();
   }
 
-  return modules::ModuleManager::create<Allocator>(name);
+  Try<process::Owned<Allocator>> allocator =
+    modules::ModuleManager::create<Allocator>(name);
+
+  if (allocator.isError()) {
+    return Error(
+        "Error creating allocator '" + name + "': " + allocator.error());
+  }
+
+  return allocator->release();
 }
 
 } // namespace allocator {

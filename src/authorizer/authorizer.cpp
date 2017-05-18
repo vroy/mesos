@@ -20,6 +20,8 @@
 
 #include <mesos/module/authorizer.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/path.hpp>
 
 #include "authorizer/local/authorizer.hpp"
@@ -37,8 +39,17 @@ using mesos::internal::LocalAuthorizer;
 
 namespace mesos {
 
-Try<Authorizer*> Authorizer::create(const string &name) {
-  return modules::ModuleManager::create<Authorizer>(name);
+Try<Authorizer*> Authorizer::create(const string &name)
+{
+  Try<process::Owned<Authorizer>> authorizer =
+    modules::ModuleManager::create<Authorizer>(name);
+
+  if (authorizer.isError()) {
+    return Error(
+        "Error creating authorizer '" + name + "': " + authorizer.error());
+  }
+
+  return authorizer->release();
 }
 
 

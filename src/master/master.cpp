@@ -562,7 +562,7 @@ void Master::initialize()
               << "' authenticator";
     authenticator = new cram_md5::CRAMMD5Authenticator();
   } else {
-    Try<Authenticator*> module =
+    Try<Owned<Authenticator>> module =
       modules::ModuleManager::create<Authenticator>(authenticatorNames[0]);
     if (module.isError()) {
       EXIT(EXIT_FAILURE)
@@ -570,7 +570,7 @@ void Master::initialize()
         << authenticatorNames[0] << "': " << module.error();
     }
     LOG(INFO) << "Using '" << authenticatorNames[0] << "' authenticator";
-    authenticator = module.get();
+    authenticator = module->release();
   }
 
   // Give Authenticator access to credentials when needed.

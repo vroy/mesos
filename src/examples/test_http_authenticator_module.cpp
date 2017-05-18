@@ -22,6 +22,7 @@
 #include <mesos/module/http_authenticator.hpp>
 
 #include <process/authenticator.hpp>
+#include <process/owned.hpp>
 
 #include <stout/hashmap.hpp>
 
@@ -33,22 +34,23 @@ using mesos::http::authentication::BasicAuthenticatorFactory;
 
 using mesos::modules::ModuleInfo;
 
+using process::Owned;
+
 using process::http::authentication::Authenticator;
 
 
-static Authenticator* createHttpAuthenticator(const ModuleInfo& moduleInfo)
+static Try<Owned<Authenticator>> createHttpAuthenticator(
+    const ModuleInfo& moduleInfo)
 {
   Try<Authenticator*> authenticator =
     BasicAuthenticatorFactory::create(moduleInfo.parameters);
 
   if (authenticator.isError()) {
-    LOG(ERROR) << "Failed to create basic HTTP authenticator: "
-               << authenticator.error();
-
-    return nullptr;
+    return Error(
+        "Failed to create basic HTTP authenticator: " + authenticator.error());
   }
 
-  return authenticator.get();
+  return Owned<Authenticator>(authenticator.get());
 }
 
 

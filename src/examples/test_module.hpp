@@ -20,6 +20,8 @@
 #include <mesos/mesos.hpp>
 #include <mesos/module.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/nothing.hpp>
 #include <stout/try.hpp>
 
@@ -70,7 +72,7 @@ struct Module<TestModule> : ModuleBase
       const char* _authorEmail,
       const char* _description,
       bool (*_compatible)(),
-      TestModule* (*_create)(const ModuleInfo& moduleInfo))
+      Try<process::Owned<TestModule>> (*_create)(const ModuleInfo& moduleInfo))
     : ModuleBase(
         _moduleApiVersion,
         _mesosVersion,
@@ -81,7 +83,7 @@ struct Module<TestModule> : ModuleBase
         _compatible),
       create(_create) {}
 
-  TestModule* (*create)(const ModuleInfo& moduleInfo);
+  Try<process::Owned<TestModule>> (*create)(const ModuleInfo& moduleInfo);
 };
 
 } // namespace modules {

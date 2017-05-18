@@ -381,7 +381,14 @@ Try<MesosContainerizer*> MesosContainerizer::create(
       if (creators.contains(isolation)) {
         return creators.at(isolation)(flags_);
       } else if (ModuleManager::contains<Isolator>(isolation)) {
-        return ModuleManager::create<Isolator>(isolation);
+        Try<Owned<Isolator>> isolator_ =
+          ModuleManager::create<Isolator>(isolation);
+
+        if (isolator_.isError()) {
+          return Error(isolator_.error());
+        }
+
+        return isolator_->release();
       }
       return Error("Unknown or unsupported isolator");
     }();

@@ -26,6 +26,7 @@
 #include "slave/container_loggers/sandbox.hpp"
 
 using namespace mesos;
+using namespace process;
 
 using mesos::internal::slave::SandboxContainerLogger;
 
@@ -44,12 +45,11 @@ org_apache_mesos_TestSandboxContainerLogger(
     "modules@mesos.apache.org",
     "Test Sandbox Container Logger module.",
     nullptr,
-    [](const ModuleInfo& moduleInfo) -> ContainerLogger* {
-      Try<ContainerLogger*> result = SandboxContainerLogger::create(None());
-
-      if (result.isError()) {
-        return nullptr;
+    [](const ModuleInfo& moduleInfo) -> Try<Owned<ContainerLogger>> {
+      Try<ContainerLogger*> logger = SandboxContainerLogger::create(None());
+      if (logger.isError()) {
+        return Error(
+            "Error creating sandbox container logger: " + logger.error());
       }
-
-      return result.get();
+      return process::Owned<ContainerLogger>(logger.get());
     });

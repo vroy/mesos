@@ -23,10 +23,13 @@
 #include <mesos/module/authenticatee.hpp>
 #include <mesos/module/authenticator.hpp>
 
+#include <process/owned.hpp>
+
 #include "authentication/cram_md5/authenticatee.hpp"
 #include "authentication/cram_md5/authenticator.hpp"
 
 using namespace mesos;
+using namespace process;
 
 using mesos::Authenticatee;
 using mesos::Authenticator;
@@ -39,9 +42,11 @@ static bool compatible()
 }
 
 
-static Authenticatee* createCRAMMD5Authenticatee(const ModuleInfo& moduleInfo)
+static Try<Owned<Authenticatee>> createCRAMMD5Authenticatee(
+    const ModuleInfo& moduleInfo)
 {
-  return new mesos::internal::cram_md5::CRAMMD5Authenticatee();
+  return Owned<Authenticatee>(
+      new mesos::internal::cram_md5::CRAMMD5Authenticatee());
 }
 
 
@@ -55,9 +60,11 @@ mesos::modules::Module<Authenticatee> org_apache_mesos_TestCRAMMD5Authenticatee(
     createCRAMMD5Authenticatee);
 
 
-static Authenticator* createCRAMMD5Authenticator(const ModuleInfo& moduleInfo)
+static Try<Owned<Authenticator>> createCRAMMD5Authenticator(
+    const ModuleInfo& moduleInfo)
 {
-  return new mesos::internal::cram_md5::CRAMMD5Authenticator();
+  return Owned<Authenticator>(
+      new mesos::internal::cram_md5::CRAMMD5Authenticator());
 }
 
 

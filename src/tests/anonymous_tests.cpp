@@ -58,9 +58,10 @@ TEST_F_TEMP_DISABLED_ON_WINDOWS(AnonymousTest, Running)
   vector<process::Owned<Anonymous>> modules;
 
   foreach (const string& name, ModuleManager::find<Anonymous>()) {
-    Try<Anonymous*> create = ModuleManager::create<Anonymous>(name);
+    Try<process::Owned<Anonymous>> create =
+      ModuleManager::create<Anonymous>(name);
     ASSERT_SOME(create);
-    modules.push_back(process::Owned<Anonymous>(create.get()));
+    modules.push_back(std::move(create.get()));
   }
 
   // Test if the environment variables have been created by the

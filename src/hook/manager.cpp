@@ -25,6 +25,7 @@
 
 #include <process/collect.hpp>
 #include <process/future.hpp>
+#include <process/owned.hpp>
 
 #include <stout/check.hpp>
 #include <stout/foreach.hpp>
@@ -43,6 +44,7 @@ using std::vector;
 
 using process::collect;
 using process::Future;
+using process::Owned;
 
 using mesos::modules::ModuleManager;
 
@@ -67,7 +69,7 @@ Try<Nothing> HookManager::initialize(const string& hookList)
       }
 
       // Let's create an instance of the hook module.
-      Try<Hook*> module = ModuleManager::create<Hook>(hook);
+      Try<Owned<Hook>> module = ModuleManager::create<Hook>(hook);
       if (module.isError()) {
         return Error(
             "Failed to instantiate hook module '" + hook + "': " +
@@ -75,7 +77,7 @@ Try<Nothing> HookManager::initialize(const string& hookList)
       }
 
       // Add the hook module to the list of available hooks.
-      availableHooks[hook] = module.get();
+      availableHooks[hook] = module.get().release();
     }
   }
 

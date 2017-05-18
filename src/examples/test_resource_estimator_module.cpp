@@ -23,6 +23,8 @@
 
 #include <mesos/slave/resource_estimator.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/try.hpp>
 
 #include "slave/resource_estimators/noop.hpp"
@@ -35,14 +37,18 @@ using mesos::modules::ModuleInfo;
 
 using mesos::slave::ResourceEstimator;
 
-static ResourceEstimator* createResourceEstimator(const ModuleInfo& moduleInfo)
+using process::Owned;
+
+static Try<Owned<ResourceEstimator>> createResourceEstimator(
+    const ModuleInfo& moduleInfo)
 {
-  Try<ResourceEstimator*> result =
-    NoopResourceEstimator::create(None());
+  Try<ResourceEstimator*> result = NoopResourceEstimator::create(None());
   if (result.isError()) {
-    return nullptr;
+    return Error(
+        "Error creating noop resource estimator module: " + result.error());
   }
-  return result.get();
+
+  return Owned<ResourceEstimator>(result.get());
 }
 
 

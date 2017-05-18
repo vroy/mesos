@@ -21,6 +21,8 @@
 
 #include <mesos/module/allocator.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/try.hpp>
 
 #include "master/constants.hpp"
@@ -29,19 +31,22 @@
 
 using namespace mesos;
 
+using process::Owned;
+
 using mesos::allocator::Allocator;
 using mesos::internal::master::allocator::HierarchicalDRFAllocator;
 using mesos::modules::ModuleInfo;
 
 
-static Allocator* createDRFAllocator(const ModuleInfo& moduleInfo)
+static Try<Owned<Allocator>> createDRFAllocator(const ModuleInfo& moduleInfo)
 {
   Try<Allocator*> allocator = HierarchicalDRFAllocator::create();
   if (allocator.isError()) {
-    return nullptr;
+    return Error(
+        "Error creating hierarchical DRF allocator: " + allocator.error());
   }
 
-  return allocator.get();
+  return Owned<Allocator>(allocator.get());
 }
 
 

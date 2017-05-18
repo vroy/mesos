@@ -20,6 +20,8 @@
 
 #include <mesos/slave/resource_estimator.hpp>
 
+#include <process/owned.hpp>
+
 #include "module/manager.hpp"
 
 #include "slave/resource_estimators/noop.hpp"
@@ -36,7 +38,7 @@ Try<ResourceEstimator*> ResourceEstimator::create(const Option<string>& type)
   }
 
   // Try to load resource estimator from module.
-  Try<ResourceEstimator*> module =
+  Try<process::Owned<ResourceEstimator>> module =
     modules::ModuleManager::create<ResourceEstimator>(type.get());
 
   if (module.isError()) {
@@ -45,7 +47,7 @@ Try<ResourceEstimator*> ResourceEstimator::create(const Option<string>& type)
         "': " + module.error());
   }
 
-  return module.get();
+  return module->release();
 }
 
 } // namespace slave {

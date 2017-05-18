@@ -19,6 +19,8 @@
 
 #include <mesos/module/anonymous.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/foreach.hpp>
 #include <stout/os.hpp>
 #include <stout/try.hpp>
@@ -26,6 +28,7 @@
 #include "test_anonymous_module.hpp"
 
 using namespace mesos;
+using namespace process;
 
 using mesos::modules::Anonymous;
 using mesos::modules::ModuleInfo;
@@ -49,9 +52,9 @@ public:
 };
 
 
-static Anonymous* createAnonymous(const ModuleInfo& moduleInfo)
+static Try<Owned<Anonymous>> createAnonymous(const ModuleInfo& moduleInfo)
 {
-  return new TestAnonymous();
+  return Owned<Anonymous>(new TestAnonymous());
 }
 
 

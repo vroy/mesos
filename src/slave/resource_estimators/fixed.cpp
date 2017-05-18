@@ -130,7 +130,7 @@ static bool compatible()
 }
 
 
-static ResourceEstimator* create(const ModuleInfo& moduleInfo)
+static Try<Owned<ResourceEstimator>> create(const ModuleInfo& moduleInfo)
 {
   // Obtain the *fixed* resources from parameters.
   Option<Resources> resources;
@@ -138,7 +138,9 @@ static ResourceEstimator* create(const ModuleInfo& moduleInfo)
     if (parameter.key() == "resources") {
       Try<Resources> _resources = Resources::parse(parameter.value());
       if (_resources.isError()) {
-        return nullptr;
+        return Error(
+            "Failed to parse resources while initializing fixed resource "
+            "estimator: " + _resources.error());
       }
 
       resources = _resources.get();
@@ -146,10 +148,12 @@ static ResourceEstimator* create(const ModuleInfo& moduleInfo)
   }
 
   if (resources.isNone()) {
-    return nullptr;
+    return Error(
+        "Failed to initialize fixed resource estimator: no resources "
+        "specified in parameters");
   }
 
-  return new FixedResourceEstimator(resources.get());
+  return Owned<ResourceEstimator>(new FixedResourceEstimator(resources.get()));
 }
 
 

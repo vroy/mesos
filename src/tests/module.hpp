@@ -23,6 +23,8 @@
 
 #include <mesos/module/module.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/try.hpp>
 
 #include "messages/messages.hpp"
@@ -74,7 +76,14 @@ public:
     if (moduleName.isError()) {
       return Error(moduleName.error());
     }
-    return mesos::modules::ModuleManager::create<T>(moduleName.get());
+
+    Try<process::Owned<T>> module = mesos::modules::ModuleManager::create<T>(
+        moduleName.get());
+    if (module.isError()) {
+      return Error(module.error());
+    }
+
+    return module->release();
   }
 
   // Create is used by the type_param'ed tests.  T here denotes the
@@ -85,9 +94,15 @@ public:
     if (moduleName.isError()) {
       return Error(moduleName.error());
     }
-    return mesos::modules::ModuleManager::create<T>(
+
+    Try<process::Owned<T>> module = mesos::modules::ModuleManager::create<T>(
         moduleName.get(),
         parameters);
+    if (module.isError()) {
+      return Error(module.error());
+    }
+
+    return module->release();
   }
 
   static Try<T*> create(const logging::Flags& flags)

@@ -24,6 +24,7 @@
 
 #include <process/pid.hpp>
 #include <process/process.hpp>
+#include <process/owned.hpp>
 
 #include <stout/os.hpp>
 
@@ -49,8 +50,17 @@ Try<MasterDetector*> MasterDetector::create(
     const Option<Duration>& zkSessionTimeout_)
 {
   if (masterDetectorModule_.isSome()) {
-    return modules::ModuleManager::create<MasterDetector>(
-        masterDetectorModule_.get());
+    Try<process::Owned<MasterDetector>> detector =
+      modules::ModuleManager::create<MasterDetector>(
+          masterDetectorModule_.get());
+
+    if (detector.isError()) {
+      return Error(
+          "Error creating master detector '" + masterDetectorModule_.get() +
+          "': " + detector.error());
+    }
+
+    return detector->release();
   }
 
   if (zk_.isNone()) {

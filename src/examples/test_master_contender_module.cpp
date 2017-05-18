@@ -21,6 +21,8 @@
 
 #include <mesos/module/contender.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/try.hpp>
 
 #include "master/contender/standalone.hpp"
@@ -28,6 +30,8 @@
 using namespace mesos;
 using namespace mesos::master;
 using namespace mesos::master::contender;
+
+using process::Owned;
 
 // Declares a MasterContender module named
 // 'org_apache_mesos_TestMasterContender'.
@@ -38,6 +42,7 @@ mesos::modules::Module<MasterContender> org_apache_mesos_TestMasterContender(
     "modules@mesos.apache.org",
     "Test MasterContender module.",
     nullptr,
-    [](const mesos::modules::ModuleInfo& moduleInfo) -> MasterContender* {
-      return new StandaloneMasterContender();
+    [](const mesos::modules::ModuleInfo& moduleInfo)
+        -> Try<Owned<MasterContender>> {
+      return Owned<MasterContender>(new StandaloneMasterContender());
     });

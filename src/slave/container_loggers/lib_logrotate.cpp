@@ -314,7 +314,7 @@ org_apache_mesos_LogrotateContainerLogger(
     "modules@mesos.apache.org",
     "Logrotate Container Logger module.",
     nullptr,
-    [](const modules::ModuleInfo& moduleInfo) -> ContainerLogger* {
+    [](const modules::ModuleInfo& moduleInfo) -> Try<Owned<ContainerLogger>> {
       // Convert `parameters` into a map.
       map<string, string> values;
       foreach (const Parameter& parameter, moduleInfo.parameters.parameter()) {
@@ -326,8 +326,7 @@ org_apache_mesos_LogrotateContainerLogger(
       Try<flags::Warnings> load = flags.load(values);
 
       if (load.isError()) {
-        LOG(ERROR) << "Failed to parse parameters: " << load.error();
-        return nullptr;
+        return Error("Failed to parse parameters: " + load.error());
       }
 
       // Log any flag warnings.
@@ -335,5 +334,6 @@ org_apache_mesos_LogrotateContainerLogger(
         LOG(WARNING) << warning.message;
       }
 
-      return new mesos::internal::logger::LogrotateContainerLogger(flags);
+      return Owned<ContainerLogger>(
+          new mesos::internal::logger::LogrotateContainerLogger(flags));
     });

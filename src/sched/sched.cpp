@@ -416,7 +416,7 @@ protected:
       LOG(INFO) << "Using default CRAM-MD5 authenticatee";
       authenticatee = new cram_md5::CRAMMD5Authenticatee();
     } else {
-      Try<Authenticatee*> module =
+      Try<process::Owned<Authenticatee>> module =
         modules::ModuleManager::create<Authenticatee>(flags.authenticatee);
       if (module.isError()) {
         EXIT(EXIT_FAILURE)
@@ -424,7 +424,7 @@ protected:
           << flags.authenticatee << "': " << module.error();
       }
       LOG(INFO) << "Using '" << flags.authenticatee << "' authenticatee";
-      authenticatee = module.get();
+      authenticatee = module->release();
     }
 
     // NOTE: We do not pass 'Owned<Authenticatee>' here because doing

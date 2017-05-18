@@ -20,6 +20,8 @@
 
 #include <mesos/zookeeper/url.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/check.hpp>
 #include <stout/os.hpp>
 
@@ -40,8 +42,17 @@ Try<MasterContender*> MasterContender::create(
     const Option<Duration>& zkSessionTimeout_)
 {
   if (masterContenderModule_.isSome()) {
-    return modules::ModuleManager::create<MasterContender>(
-        masterContenderModule_.get());
+    Try<process::Owned<MasterContender>> contender =
+      modules::ModuleManager::create<MasterContender>(
+          masterContenderModule_.get());
+
+    if (contender.isError()) {
+      return Error(
+          "Error creating master contender '" + masterContenderModule_.get() +
+          "': " + contender.error());
+    }
+
+    return contender->release();
   }
 
   if (zk_.isNone()) {

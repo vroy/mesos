@@ -18,6 +18,8 @@
 
 #include <mesos/slave/container_logger.hpp>
 
+#include <process/owned.hpp>
+
 #include <stout/error.hpp>
 #include <stout/nothing.hpp>
 #include <stout/option.hpp>
@@ -40,7 +42,7 @@ Try<ContainerLogger*> ContainerLogger::create(const Option<string>& type)
     logger = new internal::slave::SandboxContainerLogger();
   } else {
     // Try to load container logger from module.
-    Try<ContainerLogger*> module =
+    Try<process::Owned<ContainerLogger>> module =
       modules::ModuleManager::create<ContainerLogger>(type.get());
 
     if (module.isError()) {
@@ -49,7 +51,7 @@ Try<ContainerLogger*> ContainerLogger::create(const Option<string>& type)
           "': " + module.error());
     }
 
-    logger = module.get();
+    logger = module->release();
   }
 
   // Initialize the module.

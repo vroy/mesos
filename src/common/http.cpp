@@ -36,6 +36,7 @@
 #include <process/future.hpp>
 #include <process/http.hpp>
 #include <process/pid.hpp>
+#include <process/owned.hpp>
 
 #include <stout/duration.hpp>
 #include <stout/foreach.hpp>
@@ -1019,8 +1020,17 @@ Result<process::http::authentication::Authenticator*> createCustomAuthenticator(
   LOG(INFO) << "Creating '" << authenticatorName << "' HTTP authenticator "
             << "for realm '" << realm << "'";
 
-  return modules::ModuleManager::create<
-      process::http::authentication::Authenticator>(authenticatorName);
+  Try<Owned<process::http::authentication::Authenticator>> authenticator =
+    modules::ModuleManager::create<
+        process::http::authentication::Authenticator>(authenticatorName);
+
+  if (authenticator.isError()) {
+    return Error(
+        "Error to initialize http authenticator module '" + authenticatorName +
+        "': " + authenticator.error());
+  }
+
+  return authenticator.get().release();
 }
 
 } // namespace {
