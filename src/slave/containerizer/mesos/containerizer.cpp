@@ -2547,8 +2547,12 @@ void MesosContainerizerProcess::______destroy(
     if (checkpointed.isError()) {
       LOG(ERROR) << "Failed to checkpoint nested container's termination state"
                  << " to '" << terminationPath << "': " << checkpointed.error();
+    } else {
+      LOG(WARNING) << "!!! Finished checkpointing the termination state";
     }
   } else if (os::exists(runtimePath)) {
+    LOG(WARNING) << "!!! ______destroy removing runtime path: " << runtimePath;
+
     Try<Nothing> rmdir = os::rmdir(runtimePath);
     if (rmdir.isError()) {
       LOG(WARNING) << "Failed to remove the runtime directory"
@@ -2590,6 +2594,8 @@ Future<Nothing> MesosContainerizerProcess::remove(
     containerizer::paths::getRuntimePath(flags.runtime_dir, containerId);
 
   if (os::exists(runtimePath)) {
+    LOG(WARNING) << "!!! remove removing runtime path: " << runtimePath;
+
     Try<Nothing> rmdir = os::rmdir(runtimePath);
     if (rmdir.isError()) {
       return Failure(
@@ -2601,6 +2607,8 @@ Future<Nothing> MesosContainerizerProcess::remove(
       containers_[rootContainerId]->directory.get(), containerId);
 
   if (os::exists(sandboxPath)) {
+    LOG(WARNING) << "!!! remove removing sandbox path: " << sandboxPath;
+
     Try<Nothing> rmdir = os::rmdir(sandboxPath);
     if (rmdir.isError()) {
       return Failure(

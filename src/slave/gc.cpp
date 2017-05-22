@@ -130,7 +130,7 @@ void GarbageCollectorProcess::remove(const Timeout& removalTime)
   // asynchronously in another thread.
   if (paths.count(removalTime) > 0) {
     foreach (const PathInfo& info, paths.get(removalTime)) {
-      LOG(INFO) << "Deleting " << info.path;
+      LOG(WARNING) << "Deleting " << info.path;
 
       // Run rmdir with 'continueOnError = true'. It's possible for
       // tasks and isolators to lay down files that are not deletable by
@@ -143,7 +143,7 @@ void GarbageCollectorProcess::remove(const Timeout& removalTime)
                      << rmdir.error();
         info.promise->fail(rmdir.error());
       } else {
-        LOG(INFO) << "Deleted '" << info.path << "'";
+        LOG(WARNING) << "Deleted '" << info.path << "'";
         info.promise->set(rmdir.get());
       }
 
