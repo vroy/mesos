@@ -432,7 +432,7 @@ map<string, string> executorEnvironment(
     // The maximum backoff duration to be used by an executor between two
     // retries when disconnected.
     environment["MESOS_SUBSCRIPTION_BACKOFF_MAX"] =
-      stringify(EXECUTOR_REREGISTER_TIMEOUT);
+      stringify(flags.executor_reregistration_timeout);
   }
 
   if (HookManager::hooksAvailable()) {

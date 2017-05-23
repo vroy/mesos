@@ -3178,7 +3178,7 @@ void Slave::reregisterExecutorTimeout()
               TaskStatus::REASON_EXECUTOR_REREGISTRATION_TIMEOUT);
           termination.set_message(
               "Executor did not re-register within " +
-              stringify(EXECUTOR_REREGISTER_TIMEOUT));
+              stringify(flags.executor_reregistration_timeout));
 
           executor->pendingTermination = termination;
           break;
@@ -3192,6 +3192,8 @@ void Slave::reregisterExecutorTimeout()
   }
 
   // Signal the end of recovery.
+  // TODO(greggomann): Allow the agent to complete recovery before the executor
+  // re-registration timeout has elapsed. See MESOS-7539
   recoveryInfo.recovered.set(Nothing());
 }
 
@@ -4781,7 +4783,7 @@ Future<Nothing> Slave::_recover()
 
   if (!frameworks.empty() && flags.recover == "reconnect") {
     // Cleanup unregistered executors after a delay.
-    delay(EXECUTOR_REREGISTER_TIMEOUT,
+    delay(flags.executor_reregistration_timeout,
           self(),
           &Slave::reregisterExecutorTimeout);
 
