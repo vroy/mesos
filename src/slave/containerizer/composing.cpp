@@ -620,11 +620,17 @@ Future<ContainerStatus> ComposingContainerizerProcess::status(
 Future<Option<ContainerTermination>> ComposingContainerizerProcess::wait(
     const ContainerID& containerId)
 {
-  if (!containers_.contains(containerId)) {
+  // A nested container might have already been terminated - `containers_`
+  // won't contain it, but its exit status might have been checkpointed. To
+  // work around it, we use the containerizer that launched the root container.
+
+  const ContainerID rootContainerId = protobuf::getRootContainerId(containerId);
+
+  if (!containers_.contains(rootContainerId)) {
     return None();
   }
 
-  return containers_[containerId]->containerizer->wait(containerId);
+  return containers_[rootContainerId]->containerizer->wait(containerId);
 }
 
 
