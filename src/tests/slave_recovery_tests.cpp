@@ -694,7 +694,7 @@ TYPED_TEST(SlaveRecoveryTest, RecoverUnregisteredHTTPExecutor)
   Clock::settle(); // Wait for slave to schedule reregister timeout.
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
 
   // Now advance time until the reaper reaps the executor.
   while (status.isPending()) {
@@ -807,7 +807,7 @@ TYPED_TEST(SlaveRecoveryTest, RecoverUnregisteredExecutor)
   Clock::settle(); // Wait for slave to schedule reregister timeout.
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
 
   // Now advance time until the reaper reaps the executor.
   while (status.isPending()) {
@@ -925,7 +925,7 @@ TYPED_TEST(SlaveRecoveryTest, KillTaskUnregisteredExecutor)
   Clock::settle(); // Wait for the agent to schedule reregister timeout.
 
   // Ensure the agent considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
 
   while(executorTerminated.isPending()) {
     Clock::advance(process::MAX_REAP_INTERVAL());
@@ -1063,7 +1063,7 @@ TYPED_TEST(SlaveRecoveryTest, RecoverTerminatedHTTPExecutor)
   Clock::settle(); // Wait for slave to schedule reregister timeout.
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
 
   // Now advance time until the reaper reaps the executor.
   while (status.isPending()) {
@@ -1183,7 +1183,7 @@ TYPED_TEST(SlaveRecoveryTest, RecoverTerminatedExecutor)
   Clock::settle(); // Wait for slave to schedule reregister timeout.
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
 
   // Now advance time until the reaper reaps the executor.
   while (status.isPending()) {
@@ -1300,7 +1300,7 @@ TYPED_TEST(SlaveRecoveryTest, DISABLED_RecoveryTimeout)
   AWAIT_READY(_recover);
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
   Clock::resume();
 
   // Scheduler should receive the TASK_FAILED update.
@@ -1995,7 +1995,7 @@ TYPED_TEST(SlaveRecoveryTest, KillTask)
   AWAIT_READY(reregisterExecutorMessage);
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
   Clock::resume();
 
   // Wait for the slave to re-register.
@@ -2278,7 +2278,7 @@ TYPED_TEST(SlaveRecoveryTest, GCExecutor)
   Clock::settle(); // Wait for slave to schedule reregister timeout.
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
 
   AWAIT_READY(slaveReregisteredMessage);
 
@@ -3116,7 +3116,7 @@ TYPED_TEST(SlaveRecoveryTest, SchedulerFailover)
   AWAIT_READY(reregisterExecutorMessage);
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
   Clock::resume();
 
   // Wait for the slave to re-register.
@@ -3404,7 +3404,7 @@ TYPED_TEST(SlaveRecoveryTest, MasterFailover)
   AWAIT_READY(reregisterExecutorMessage);
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
   Clock::resume();
 
   // Wait for the slave to re-register.
@@ -3567,7 +3567,7 @@ TYPED_TEST(SlaveRecoveryTest, MultipleFrameworks)
   AWAIT_READY(reregisterExecutorMessage2);
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
   Clock::resume();
 
   // Wait for the slave to re-register.
@@ -3755,7 +3755,7 @@ TYPED_TEST(SlaveRecoveryTest, MultipleSlaves)
   AWAIT_READY(reregisterExecutorMessage2);
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags1.executor_reregistration_timeout);
   Clock::resume();
 
   // Wait for the slaves to re-register.
@@ -3877,7 +3877,7 @@ TYPED_TEST(SlaveRecoveryTest, RestartBeforeContainerizerLaunch)
   Clock::settle(); // Wait for slave to schedule reregister timeout.
 
   // Ensure the slave considers itself recovered.
-  Clock::advance(EXECUTOR_REREGISTER_TIMEOUT);
+  Clock::advance(flags.executor_reregistration_timeout);
   Clock::resume();
 
   // Scheduler should receive the TASK_FAILED update.
