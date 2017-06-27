@@ -484,7 +484,7 @@
     var update = function() {
       // TODO(haosdent): Send requests to the leading master directly
       // once `leadingMasterURL` is public.
-      $http.jsonp('/master/roles?jsonp=JSON_CALLBACK')
+      $http.jsonp('master/roles?jsonp=JSON_CALLBACK')
       .success(function(response) {
         $scope.roles = response;
       })
