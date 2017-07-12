@@ -917,7 +917,7 @@
 
       // Request agent details to get access to the route executor's "directory"
       // to navigate directly to the executor's sandbox.
-      $http.jsonp('//' + host + '/' + id + '/state?jsonp=JSON_CALLBACK')
+      $http.jsonp(host + '/' + id + '/state?jsonp=JSON_CALLBACK')
         .success(function(response) {
 
           function matchFramework(framework) {
