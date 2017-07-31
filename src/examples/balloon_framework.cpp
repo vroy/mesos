@@ -113,11 +113,6 @@ public:
         "executor_uri",
         "URI the fetcher should use to get the executor.");
 
-    add(&Flags::executor_command,
-        "executor_command",
-        "The command that should be used to start the executor.\n"
-        "This will override the value set by `--build_dir`.");
-
     add(&Flags::executor_uris,
         "uris",
         "JSON-formatted string of the URIs that should be fetched\n"
@@ -137,6 +132,11 @@ public:
         "    \"cache\":\"true\"\n"
         "  }\n"
         "]");
+
+    add(&Flags::executor_command,
+        "executor_command",
+        "The command that should be used to start the executor.\n"
+        "This will override the value set by `--build_dir`.");
 
     add(&Flags::checkpoint,
         "checkpoint",
@@ -158,8 +158,8 @@ public:
   // Flags for specifying the executor binary.
   Option<string> build_dir;
   Option<string> executor_uri;
-  Option<string> executor_command;
   Option<JSON::Array> executor_uris;
+  Option<string> executor_command;
 
   bool checkpoint;
   bool long_running;

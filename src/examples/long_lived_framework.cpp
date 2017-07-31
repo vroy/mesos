@@ -44,9 +44,14 @@
 #include <stout/path.hpp>
 #include <stout/stringify.hpp>
 
+#include "common/parse.hpp"
+#include "common/protobuf_utils.hpp"
+
 using std::queue;
 using std::string;
 using std::vector;
+
+using google::protobuf::RepeatedPtrField;
 
 using mesos::v1::AgentID;
 using mesos::v1::CommandInfo;
@@ -496,6 +501,26 @@ public:
         "executor_uri",
         "URI the fetcher should use to get the executor.");
 
+    add(&Flags::executor_uris,
+        "uris",
+        "JSON-formatted string of the URIs that should be fetched\n"
+        "before running the executor. This flag can also replace\n"
+        "the executor_uri flag as it can be used to fetch it.\n"
+        "\n"
+        "See the `URI` message in `mesos.proto` for the expected format.\n"
+        "\n"
+        "Example:\n"
+        "[\n"
+        "  {\n"
+        "    \"value\":\"mesos.apache.org/balloon_executor\",\n"
+        "    \"executable\":\"true\"\n"
+        "  },\n"
+        "  {\n"
+        "    \"value\":\"mesos.apache.org/bundle_for_executor.tar.gz\",\n"
+        "    \"cache\":\"true\"\n"
+        "  }\n"
+        "]");
+
     add(&Flags::executor_command,
         "executor_command",
         "The command that should be used to start the executor.\n"
@@ -520,6 +545,7 @@ public:
   // Flags for specifying the executor binary.
   Option<string> build_dir;
   Option<string> executor_uri;
+  Option<JSON::Array> executor_uris;
   Option<string> executor_command;
 
   bool checkpoint;
@@ -574,11 +600,32 @@ int main(int argc, char** argv)
 
   executor.mutable_command()->set_value(command);
 
+  if (flags.executor_uri.isSome() && flags.executor_uris.isSome()) {
+    EXIT(EXIT_FAILURE)
+      << "The flag '--executor_uris' shall not be used with '--executor_uri'";
+  }
+
   // Copy `--executor_uri` into the command.
   if (flags.executor_uri.isSome()) {
+    LOG(WARNING)
+      << "Using '--executor_uri' is deprecated, use '--executor_uris' instead";
     CommandInfo::URI* uri = executor.mutable_command()->add_uris();
     uri->set_value(flags.executor_uri.get());
     uri->set_executable(true);
+  }
+
+  // Copy `--executor_uris` into the command.
+  if (flags.executor_uris.isSome()) {
+    Try<RepeatedPtrField<CommandInfo::URI>> parse =
+      ::protobuf::parse<RepeatedPtrField<CommandInfo::URI>>(
+          flags.executor_uris.get());
+
+    if (parse.isError()) {
+      EXIT(EXIT_FAILURE)
+        << "Failed to convert '--executor_uris' to protobuf: " << parse.error();
+    }
+
+    executor.mutable_command()->mutable_uris()->CopyFrom(parse.get());
   }
 
   FrameworkInfo framework;
