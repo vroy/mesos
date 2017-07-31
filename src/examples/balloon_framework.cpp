@@ -595,8 +595,7 @@ int main(int argc, char** argv)
   } else {
     framework.set_principal(FRAMEWORK_PRINCIPAL);
 
-    driver = new MesosSchedulerDriver(
-        &scheduler, framework, flags.master);
+    driver = new MesosSchedulerDriver(&scheduler, framework, flags.master);
   }
 
   int status = driver->run() == DRIVER_STOPPED ? 0 : 1;

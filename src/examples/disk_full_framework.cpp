@@ -40,7 +40,6 @@
 #include <stout/os.hpp>
 #include <stout/try.hpp>
 
-
 using namespace mesos;
 
 using std::string;
@@ -50,7 +49,6 @@ using process::defer;
 
 using process::metrics::Gauge;
 using process::metrics::Counter;
-
 
 const double CPUS_PER_TASK = 0.1;
 const int MEMORY_PER_TASK = 16;
@@ -485,8 +483,7 @@ int main(int argc, char** argv)
   } else {
     framework.set_principal(FRAMEWORK_PRINCIPAL);
 
-    driver = new MesosSchedulerDriver(
-        &scheduler, framework, flags.master);
+    driver = new MesosSchedulerDriver(&scheduler, framework, flags.master);
   }
 
   int status = driver->run() == DRIVER_STOPPED ? 0 : 1;
