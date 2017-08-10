@@ -84,6 +84,8 @@ Option<Error> Master::QuotaHandler::capacityHeuristic(
   foreachvalue (const Quota& quota, master->quotas) {
     totalQuota += quota.info.guarantee();
   }
+  VLOG(1) << "heuristic: total quota '" << totalQuota << "'";
+
 
   // Determine whether the total quota, including the new request, does
   // not exceed the sum of non-static cluster resources.
@@ -106,11 +108,14 @@ Option<Error> Master::QuotaHandler::capacityHeuristic(
     Resources nonStaticAgentResources =
       Resources(slave->info.resources()).unreserved();
 
+    VLOG(1) << "heuristic: nonStaticAgentResources = '" << nonStaticAgentResources << "'";
     nonStaticClusterResources += nonStaticAgentResources;
+    VLOG(1) << "heuristic: nonStaticClusterResources = '" << nonStaticClusterResources << "'";
 
     // If we have found enough resources to satisfy the inequality, then
     // we can return early.
     if (nonStaticClusterResources.contains(totalQuota)) {
+      VLOG(1) << "heuristic: nonStaticClusterResources.contains(totalQuota)"
       return None();
     }
   }
