@@ -115,7 +115,7 @@ Option<Error> Master::QuotaHandler::capacityHeuristic(
     // If we have found enough resources to satisfy the inequality, then
     // we can return early.
     if (nonStaticClusterResources.contains(totalQuota)) {
-      VLOG(1) << "heuristic: nonStaticClusterResources.contains(totalQuota)"
+      VLOG(1) << "heuristic: nonStaticClusterResources.contains(totalQuota)";
       return None();
     }
   }
