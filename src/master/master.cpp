@@ -7117,7 +7117,8 @@ void Master::inverseOffer(
   }
 
   LOG(INFO) << "Sending " << message.inverse_offers().size()
-            << " inverse offers to framework " << *framework;
+            << " inverse offers to framework " << *framework
+            << " (" << message << ")";
 
   framework->send(message);
 }
