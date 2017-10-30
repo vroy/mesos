@@ -7027,7 +7027,7 @@ void Master::offer(
   }
 
   LOG(INFO) << "Sending " << message.offers().size()
-            << " offers to framework " << *frameworks
+            << " offers to framework " << *framework
             << " (" << message.offers() << ")";
 
   framework->send(message);
