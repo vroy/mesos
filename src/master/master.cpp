@@ -7632,6 +7632,9 @@ void Master::offer(
                 offer->id());
       }
 
+      LOG(INFO) << "OfferID: " << offer->id()
+                << " Resources: " << offer->resources();
+
       // TODO(jieyu): For now, we strip 'ephemeral_ports' resource from
       // offers so that frameworks do not see this resource. This is a
       // short term workaround. Revisit this once we resolve MESOS-1654.
